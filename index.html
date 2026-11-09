@@ -17,7 +17,7 @@
 <body>
 <div class="shell">
  <aside class="sidebar"><div class="brand">◈ Portfolio Studio<small>Personal Investment Desk</small></div><div><div class="side-label">Portfolio</div><div id="side-nav"></div></div><div class="side-bottom"><strong>資料儲存方式</strong>此版資料保存在本瀏覽器。若要換電腦或分享更新紀錄，請先匯出 JSON 備份。V3 使用 GitHub Actions 定時更新官方台股每日收盤行情（非盤中即時），尚未連接證券商或雲端同步。若將網站放上外網，資料仍只會儲存在目前裝置／瀏覽器；沒有帳號登入保護。</div></aside>
- <main class="main"><div class="top"><div><div class="eyebrow">My Investment Workspace</div><h1 id="page-title">五帳戶投資總覽</h1><p id="page-desc">現金・持股配置・個股未實現損益・官方盤後行情</p></div><div class="top-actions"><button class="btn quote-refresh" id="quote-refresh" title="讀取 GitHub Pages 已發布的最新官方盤後收盤行情（非盤中即時）">↻ 同步台股盤後行情</button><button class="btn" id="import-btn">匯入備份</button><button class="btn" id="export-btn">匯出備份</button><button class="btn ghost" data-modal="names">管理帳戶名稱</button><button class="btn ghost" data-modal="cash">調整現金</button><button class="btn ghost" data-modal="position">新增庫存</button><button class="btn ghost" data-modal="settlement">待交割入帳</button><button class="btn primary" data-modal="trade">＋ 登記交易</button></div></div>
+ <main class="main"><div class="top"><div><div class="eyebrow">My Investment Workspace</div><h1 id="page-title">五帳戶投資總覽</h1><p id="page-desc">現金・持股配置・個股未實現損益・台美股行情</p></div><div class="top-actions"><button class="btn quote-refresh" id="quote-refresh" title="同步已發布的台股官方收盤價與美股 Nasdaq 延遲參考價（非即時報價）">↻ 同步台股／美股行情</button><button class="btn" id="import-btn">匯入備份</button><button class="btn" id="export-btn">匯出備份</button><button class="btn ghost" data-modal="names">管理帳戶名稱</button><button class="btn ghost" data-modal="cash">調整現金</button><button class="btn ghost" data-modal="position">新增庫存</button><button class="btn ghost" data-modal="settlement">待交割入帳</button><button class="btn primary" data-modal="trade">＋ 登記交易</button></div></div>
  <div class="mobile-tabs" id="mobile-nav"></div><div class="notice" id="data-notice"></div><div class="quote-info" id="quote-info" role="status" aria-live="polite"></div><div id="dashboard"></div>
  <div class="footnote">注意：投資市值、資產比例及損益需使用市價。未取得報價的標的暫以「投入成本」代替市值，因此相關比例僅為暫估。交易費用與稅額可於登記交易時輸入。網站可在外網主機開啟，但此版本資料只保存在各自的瀏覽器，不會自動跨裝置同步；請勿在共用裝置輸入私密財務資訊。此工具僅作記錄與風險觀察，不構成投資建議。</div>
  </main>
@@ -89,8 +89,8 @@ function figures(d,cur,all){
  <div class="card metric"><div class="label">持股${d.missing?'暫估':''}市值</div><div class="amount">${money(d.hold,cur)}</div><div class="sub">持股成本：${money(d.cost,cur)}</div></div>
  <div class="card metric"><div class="label">未實現損益（已報價部分）</div><div class="amount ${d.unrealized<0?'negative':d.missing&&Math.abs(d.unrealized)<.0001?'':'positive'}">${d.missing&&Math.abs(d.unrealized)<.0001?'待報價':money(d.unrealized,cur)}</div><div class="sub">${d.missing?`${d.missing} 檔未提供市價，合計尚未完整`:'已輸入市價的損益合計'}</div></div></div>`;
 }
-function stockRow(a,h){const valid=h.price!==null&&h.price!==undefined;const market=valid?h.qty*h.price:null;const gain=valid?market-h.qty*h.avg:null;const ret=valid&&h.avg>0?((h.price/h.avg)-1)*100:null;const real=(state.transactions||[]).filter(t=>t.account===a.id&&t.symbol===h.symbol&&t.side==='sell').reduce((s,t)=>s+num(t.realized),0);return `<tr><td class="symbol">${esc(h.symbol)}<small>${esc(h.name)}</small></td><td class="right">${fmt(h.qty,4)}</td><td class="right">${money(h.avg,a.currency,2)}</td><td class="right">${money(h.qty*h.avg,a.currency)}</td><td class="right"><div class="pricefield"><span class="quote-readonly" title="市價只能透過「同步台股盤後行情」更新，無法在此編輯">${valid?money(h.price,a.currency,2):'尚未同步'}</span></div><div class="muted" style="font-size:10px;margin-top:4px">${valid ? esc(h.priceDate ? `收盤 ${h.priceDate} · ${h.priceSource||'官方'}` : '手動價格／日期未記錄') : '待取得行情'}</div></td><td class="right">${valid?money(market,a.currency):'—'}</td><td class="right ${gain===null?'':gain>=0?'positive':'negative'}">${gain===null?'待報價':(gain>0?'+':'')+money(gain,a.currency)}<br><span class="muted" style="font-size:11px">${ret===null?'':(ret>0?'+':'')+pct(ret)}</span></td><td class="right ${real<0?'negative':real>0?'positive':''}">${real===0?'—':money(real,a.currency)}</td><td class="right"><div style="display:flex;gap:6px"><button class="btn small" data-position="${esc(a.id)}|${esc(h.symbol)}">編輯庫存</button><button class="btn small" data-strategy="${esc(a.id)}|${esc(h.symbol)}">價位／筆記</button></div></td></tr>`}
-function tableFor(as){const rows=as.flatMap(a=>a.holdings.filter(h=>h.qty>0).map(h=>stockRow(a,h)));return `<div class="section-header"><div><h2>個股損益明細</h2><p class="desc">市價為唯讀，只有按下「同步台股盤後行情」才會更新；台股使用最近交易日的官方收盤價。</p></div><span class="pill">${rows.length} 筆持股</span></div><div class="card table-wrap">${rows.length?`<table class="stock-table"><thead><tr><th>股票</th><th class="right">股數</th><th class="right">平均成本</th><th class="right">持有成本</th><th class="right">市價／最近收盤</th><th class="right">目前市值</th><th class="right">未實現損益 / 報酬率</th><th class="right">已實現損益*</th><th></th></tr></thead><tbody>${rows.join('')}</tbody></table>`:`<div class="empty">此範圍尚無登錄持股。可以使用「新增庫存」匯入既有股票，或透過「登記交易」新增買入。</div>`}</div><div class="hint" style="font-size:11px;line-height:1.6;margin-top:9px">*已實現損益僅統計從本網站登記的賣出紀錄，不代表券商歷史累積損益；已報價的未實現損益未包含預估賣出手續費與證交稅。</div>`}
+function stockRow(a,h){const valid=h.price!==null&&h.price!==undefined;const market=valid?h.qty*h.price:null;const gain=valid?market-h.qty*h.avg:null;const ret=valid&&h.avg>0?((h.price/h.avg)-1)*100:null;const real=(state.transactions||[]).filter(t=>t.account===a.id&&t.symbol===h.symbol&&t.side==='sell').reduce((s,t)=>s+num(t.realized),0);return `<tr><td class="symbol">${esc(h.symbol)}<small>${esc(h.name)}</small></td><td class="right">${fmt(h.qty,4)}</td><td class="right">${money(h.avg,a.currency,2)}</td><td class="right">${money(h.qty*h.avg,a.currency)}</td><td class="right"><div class="pricefield"><span class="quote-readonly" title="市價只能透過同步行情按鈕更新，不能手動編輯">${valid?money(h.price,a.currency,2):'尚未同步'}</span></div><div class="muted" style="font-size:10px;margin-top:4px">${valid ? esc(h.priceDate ? `${h.priceDateKind==='retrieved'?'擷取':h.priceSource==='NASDAQ-SCREENER'?'美股參考':'收盤'} ${h.priceDate} · ${h.priceSource==='NASDAQ-SCREENER'?'Nasdaq 延遲參考價':h.priceSource||'官方'}` : '舊版手動價格／日期未記錄') : '待取得行情'}</div></td><td class="right">${valid?money(market,a.currency):'—'}</td><td class="right ${gain===null?'':gain>=0?'positive':'negative'}">${gain===null?'待報價':(gain>0?'+':'')+money(gain,a.currency)}<br><span class="muted" style="font-size:11px">${ret===null?'':(ret>0?'+':'')+pct(ret)}</span></td><td class="right ${real<0?'negative':real>0?'positive':''}">${real===0?'—':money(real,a.currency)}</td><td class="right"><div style="display:flex;gap:6px"><button class="btn small" data-position="${esc(a.id)}|${esc(h.symbol)}">編輯庫存</button><button class="btn small" data-strategy="${esc(a.id)}|${esc(h.symbol)}">價位／筆記</button></div></td></tr>`}
+function tableFor(as){const rows=as.flatMap(a=>a.holdings.filter(h=>h.qty>0).map(h=>stockRow(a,h)));return `<div class="section-header"><div><h2>個股損益明細</h2><p class="desc">市價為唯讀，只會在按下「同步台股／美股行情」時更新；台股為官方收盤價，美股為延遲參考價。</p></div><span class="pill">${rows.length} 筆持股</span></div><div class="card table-wrap">${rows.length?`<table class="stock-table"><thead><tr><th>股票</th><th class="right">股數</th><th class="right">平均成本</th><th class="right">持有成本</th><th class="right">市價／最近收盤</th><th class="right">目前市值</th><th class="right">未實現損益 / 報酬率</th><th class="right">已實現損益*</th><th></th></tr></thead><tbody>${rows.join('')}</tbody></table>`:`<div class="empty">此範圍尚無登錄持股。可以使用「新增庫存」匯入既有股票，或透過「登記交易」新增買入。</div>`}</div><div class="hint" style="font-size:11px;line-height:1.6;margin-top:9px">*已實現損益僅統計從本網站登記的賣出紀錄，不代表券商歷史累積損益；已報價的未實現損益未包含預估賣出手續費與證交稅。</div>`}
 function marketPanel(){return `<div class="card"><div class="card-header"><h2>大盤觀察價位</h2><span class="pill">官方盤後／自訂策略</span></div><div class="market-list">${state.markets.map(m=>{
  const q=publicIndexQuotes[m.id];const live=q&&Number.isFinite(q.price)&&q.price>0;
  const level=live?`<div class="market-note" style="color:var(--blue);font-weight:700">最近收盤：${fmt(q.price,2)}　${esc(q.date||'')} · ${esc(q.source||'官方')}</div>`:'';
@@ -114,7 +114,7 @@ function detailsPanel(as){
 }
 function nav(){const items=[{id:'all',label:'全部帳戶',meta:'Overview'},...state.accounts.map(a=>({id:a.id,label:`${accountTitle(a)} · ${a.broker}`,meta:a.currency}))];$('#side-nav').innerHTML=items.map(i=>`<button class="nav-btn ${selection===i.id?'selected':''}" data-tab="${esc(i.id)}"><span>${esc(i.label)}</span><span class="meta">${esc(i.meta)}</span></button>`).join('');$('#mobile-nav').innerHTML=items.map(i=>`<button class="tab ${selection===i.id?'active':''}" data-tab="${esc(i.id)}">${i.id==='all'?'總覽':`${esc(accountTitle(getA(i.id)))}`}</button>`).join('')}
 function render(){nav();const all=selection==='all';const a=all?null:getA(selection);const as=all?state.accounts:[a];const d=all?consolidated():({...derived(a),cash:a.cash});const currency=all?'TWD':a.currency;$('#page-title').textContent=all?'五帳戶投資總覽':`${accountTitle(a)} · ${a.broker}`;$('#page-desc').textContent=all?'五帳戶分開管理，首頁合併檢視台股與美股（美股非零資產需設定匯率）':`${a.currency==='TWD'?'台股':'美股'} · 獨立現金、庫存及損益管理`;
- $('#data-notice').textContent=d.excluded?'尚未設定 USD/TWD 匯率，首頁合計不包含美股資產。請先設定匯率。':(d.missing?`目前有 ${d.missing} 檔持股尚未取得市價，資產總額與圓餅圖暫以原始成本補足，僅供檢視投入配置；不能當作即時資產比例。請點選「同步台股盤後行情」更新市價；價格欄無法手動修改。`:'已登錄持股皆有參考市價，但報價可能是先前交易日的收盤價或手動價格。請查看每檔行情日期；仍可能有尚未提供庫存的帳戶。');
+ $('#data-notice').textContent=d.excluded?'尚未設定 USD/TWD 匯率，首頁合計不包含美股資產。請先設定匯率。':(d.missing?`目前有 ${d.missing} 檔持股尚未取得市價，資產總額與圓餅圖暫以原始成本補足，僅供檢視投入配置；不能當作即時資產比例。請點選「同步台股／美股行情」更新市價；價格欄無法手動修改。`:'已登錄持股皆有參考市價，但報價可能是先前交易日的收盤價或手動價格。請查看每檔行情日期；仍可能有尚未提供庫存的帳戶。');
 
  let banner=all?'':`<div class="account-banner"><div><h2>${esc(accountTitle(a))} · ${esc(a.broker)}</h2><p>${a.currency==='TWD'?'台股':'美股'} · 獨立帳戶資產與績效 <button type="button" class="btn small" style="margin-left:8px" data-modal="names">更改名稱</button></p></div></div>`;
  let accountsPanel=`<div class="card"><div class="card-header"><h2>${all?'各帳戶現金概況':'持股與現金概況'}</h2><button type="button" class="btn small" data-modal="names">重新命名</button></div><div class="breakdown">${as.map(accountInfo).join('')}</div></div>`;
@@ -263,7 +263,7 @@ async function updateOfficialPrices(){
  if(quoteBusy)return;
  quoteBusy=true;
  const btn=$('#quote-refresh');if(btn){btn.disabled=true;btn.textContent='讀取行情中…'}
- quoteMessage('正在讀取已發布的 TWSE / TPEx 官方盤後行情；非即時報價。');
+ quoteMessage('正在讀取台股官方收盤價與 Nasdaq 美股延遲參考價；非即時行情。');
  try{
   let data,from='GitHub Pages 每日市場行情';
   try{data=await publishedPrices()}
@@ -271,7 +271,7 @@ async function updateOfficialPrices(){
    from='瀏覽器官方 API 備援';data=await directPrices();
    data.errors=[`已發布行情檔尚不可用：${err.message}`,...(data.errors||[])];
   }
-  const all=data.quotes||{};let changed=0,skipped=0,unfound=[];
+  const all=data.quotes||{},usQuotes=data.usQuotes||{};let changed=0,changedTW=0,changedUS=0,skipped=0,unfound=[];
   publicIndexQuotes=data.indices||{};
   const tw=state.accounts.filter(a=>a.currency==='TWD').flatMap(a=>a.holdings.filter(h=>h.qty>0));
   for(const h of tw){
@@ -279,21 +279,34 @@ async function updateOfficialPrices(){
    if(!q||!Number.isFinite(Number(q.price))||Number(q.price)<=0||!/^\d{4}-\d{2}-\d{2}$/.test(String(q.date||''))){unfound.push(h.symbol);continue}
    if(h.priceDate && h.priceDate>q.date){skipped++;continue}
    if(h.price!==q.price||h.priceDate!==q.date||h.priceSource!==q.source){
-    h.price=Number(q.price);h.priceDate=q.date;h.priceSource=q.source;changed++;
+    h.price=Number(q.price);h.priceDate=q.date;h.priceSource=q.source;h.priceDateKind='provider';changed++;changedTW++;
+   }
+  }
+  // U.S. holdings are priced in USD, never mapped through Taiwan's numeric symbols.
+  const us=state.accounts.filter(a=>a.currency==='USD').flatMap(a=>a.holdings.filter(h=>h.qty>0));
+  for(const h of us){
+   const key=String(h.symbol||'').trim().toUpperCase().replace('/', '.');
+   const q=usQuotes[key];
+   if(!q||!Number.isFinite(Number(q.price))||Number(q.price)<=0||!/^\d{4}-\d{2}-\d{2}$/.test(String(q.date||''))){unfound.push('US:'+key);continue}
+   if(h.priceDate&&h.priceDate>q.date){skipped++;continue}
+   if(h.price!==q.price||h.priceDate!==q.date||h.priceSource!==q.source||h.priceDateKind!==q.dateKind){
+    h.price=Number(q.price);h.priceDate=q.date;h.priceSource=q.source;h.priceDateKind=q.dateKind||'retrieved';
+    changed++;changedUS++;
    }
   }
   if(changed)persist();render();
   const dates=[...new Set(Object.values(all).map(x=>x.date).filter(Boolean))].sort();const last=dates.at(-1)||'未知';
-  let message=`官方最近交易日收盤 ${last}（${from}）：${changed} 筆持股市價已更新。`;
-  if(!tw.length)message+=' 尚未匯入台股庫存，暫只顯示大盤資料。';
-  if(skipped)message+=` 保留 ${skipped} 筆手動或較新報價。`;
+  let message=`行情同步（${from}）：台股 ${changedTW} 筆、美股 ${changedUS} 筆價格已更新。台股最近行情日 ${last}；美股為 Nasdaq 延遲參考價（實際時效以來源為準）。`;
+  if(!tw.length&&!us.length)message+=' 尚未匯入台股或美股庫存，暫只顯示大盤資訊。';
+  if(skipped)message+=` 保留 ${skipped} 筆日期較新的既有報價。`;
+  if(us.length&&!Object.keys(usQuotes).length)message+=' 美股行情來源暫時不可用，沒有覆蓋既有美股市價。';
   if(unfound.length)message+=` 缺少行情：${[...new Set(unfound)].join('、')}。`;
   if(data.asOf)message+=` 抓取時間 ${new Date(data.asOf).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false})}（台灣時間）。`;
   if(data.errors?.length)message+=` 部分來源警告：${data.errors.join('；')}。`;
-  if(!Object.keys(all).length)message='行情目前無法取得，沒有更新任何價格；'+(data.errors||[]).join('；')+'。可等 GitHub Actions 完成部署後再重試。';
-  quoteMessage(message,Object.keys(all).length?'ok':'warn');
+  if(!Object.keys(all).length&&!Object.keys(usQuotes).length)message='行情目前無法取得，沒有更新任何價格；'+(data.errors||[]).join('；')+'。請檢查 GitHub Actions。';
+  quoteMessage(message,Object.keys(all).length||Object.keys(usQuotes).length?'ok':'warn');
  }catch(e){quoteMessage('行情讀取失敗：'+e.message+'。沒有更改你的持股與現金，請檢查 GitHub Actions 是否成功。','warn')}
- finally{quoteBusy=false;if(btn){btn.disabled=false;btn.textContent='↻ 同步台股盤後行情'}}
+ finally{quoteBusy=false;if(btn){btn.disabled=false;btn.textContent='↻ 同步台股／美股行情'}}
 }
 $('#quote-refresh').onclick=()=>updateOfficialPrices();
 
