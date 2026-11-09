@@ -145,7 +145,7 @@ function render(){nav();const all=selection==='all';const a=all?null:getA(select
  $('#data-notice').textContent=d.excluded?'尚未設定 USD/TWD 匯率，首頁合計不包含美股資產。請先設定匯率。':(d.missing?`目前有 ${d.missing} 檔持股尚未取得市價，資產總額與圓餅圖暫以原始成本補足，僅供檢視投入配置；不能當作即時資產比例。請點選「同步台股／美股行情」更新市價；價格欄無法手動修改。`:'已登錄持股皆有參考市價，但報價可能是先前交易日的收盤價或手動價格。請查看每檔行情日期；仍可能有尚未提供庫存的帳戶。');
 
  let banner=all?'':`<div class="account-banner"><div><h2>${esc(accountTitle(a))} · ${esc(a.broker)}</h2><p>${a.currency==='TWD'?'台股':'美股'} · 獨立帳戶資產與績效 <button type="button" class="btn small" style="margin-left:8px" data-modal="names">更改名稱</button></p></div></div>`;
- $('#dashboard').innerHTML=banner+figures(d,currency,all)+`<div class="cols">${donutBlock(d,currency)}${pnlPanel(as)}</div>`+journalPanel(as)+`<div class="footer-panels">${marketPanel()}${detailsPanel(as)}</div>`;
+ $('#dashboard').innerHTML=banner+figures(d,currency,all)+`<div class="cols">${donutBlock(d,currency)}${pnlPanel(as)}</div>`+journalPanel(as)+(all?`<div class="footer-panels">${marketPanel()}${detailsPanel(as)}</div>`:'');
 }
 function modal(title,intro,body,actions){$('#modal-content').innerHTML=`<h2>${title}</h2><p class="modal-intro">${intro}</p>${body}<div class="modal-actions"><button type="button" class="btn" id="modal-cancel">取消</button>${actions||'<button class="btn primary" form="modal-form" type="submit">儲存</button>'}</div>`;$('#overlay').classList.add('open');$('#overlay').setAttribute('aria-hidden','false');$('#modal-cancel').onclick=closeModal;}
 function closeModal(){$('#overlay').classList.remove('open');$('#overlay').setAttribute('aria-hidden','true');}
