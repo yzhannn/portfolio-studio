@@ -4,28 +4,29 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="color-scheme" content="light"/>
-<title>Portfolio Studio | 私人帳戶儀表板</title>
+<title>Portfolio Studio V3 | GitHub 官方台股盤後行情</title>
 <style>
 :root{--bg:#f4f6fa;--surface:#fff;--surface2:#f9fafc;--line:#e4e8ee;--ink:#17243b;--muted:#78869b;--blue:#4668e9;--blue-light:#edf0ff;--green:#138669;--red:#d6535d;--amber:#a56d17;--gold:#e9b970;--shadow:0 14px 38px rgba(29,51,91,.055)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;font-size:14px}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}.shell{min-height:100vh;display:grid;grid-template-columns:235px 1fr}.sidebar{background:#152139;padding:30px 19px;color:#ebf1ff;display:flex;flex-direction:column;gap:18px}.brand{font-weight:750;letter-spacing:-.4px;font-size:20px;padding:6px 12px 26px;border-bottom:1px solid #31415b}.brand small{display:block;color:#a9b7d3;font-size:11px;letter-spacing:1.6px;margin-top:5px;font-weight:500;text-transform:uppercase}.side-label{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#8093b4;margin:10px 12px 6px}.nav-btn{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;background:transparent;border:1px solid transparent;color:#c1cee1;padding:12px;border-radius:11px;font-weight:600}.nav-btn .meta{font-size:11px;font-weight:400;color:#8599b7}.nav-btn:hover{background:#213250}.nav-btn.selected{background:#2b3d60;border-color:#40547c;color:#fff}.side-bottom{margin-top:auto;border:1px solid #334562;border-radius:12px;padding:14px;color:#aebdd4;font-size:12px;line-height:1.65}.side-bottom strong{display:block;color:white;margin-bottom:4px}.main{min-width:0;padding:35px clamp(18px,4vw,56px) 65px;max-width:1680px;width:100%;margin:0 auto}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:28px}.eyebrow{text-transform:uppercase;letter-spacing:2px;color:var(--blue);font-weight:750;font-size:11px}.top h1{font-size:28px;letter-spacing:-.7px;margin:8px 0 7px}.muted{color:var(--muted)}.top p{color:var(--muted);margin:0;font-size:13px}.top-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{border-radius:10px;padding:10px 13px;background:white;border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:37px}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.btn.ghost{background:var(--blue-light);border-color:transparent;color:#3550bc}.btn:hover{filter:brightness(.965)}.btn.small{padding:7px 9px;min-height:30px}.pill{display:inline-block;background:#ecf0ff;color:#4a61ba;border-radius:100px;padding:5px 9px;font-size:10px;font-weight:700}.pill.warn{color:#9a6828;background:#fff2db}.notice{border:1px solid #eadbb4;background:#fffaf0;border-radius:12px;padding:12px 15px;color:#86672d;font-size:12px;line-height:1.7;margin-bottom:19px}.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}.card{background:var(--surface);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);min-width:0}.metric{padding:20px 20px 18px;min-height:122px}.metric .label{font-size:12px;color:var(--muted)}.metric .amount{font-size:clamp(19px,1.9vw,26px);letter-spacing:-.8px;font-weight:760;margin:14px 0 6px;white-space:nowrap}.metric .sub{font-size:11px;color:var(--muted)}.positive{color:var(--green)!important}.negative{color:var(--red)!important}.cols{display:grid;grid-template-columns:minmax(315px,.9fr) minmax(330px,1.1fr);gap:16px;margin-bottom:17px}.card-header{padding:21px 23px 0;display:flex;justify-content:space-between;gap:12px;align-items:center}.card h2{font-size:16px;margin:0;letter-spacing:-.2px}.card .hint{color:var(--muted);font-size:11px}.chart-holder{padding:22px 26px;display:flex;align-items:center;justify-content:center;gap:26px;min-height:234px}.donut{width:190px;height:190px;border-radius:50%;position:relative;flex-shrink:0;display:grid;place-items:center;background:#e5ebf7}.donut:before{content:"";position:absolute;inset:30px;background:white;border-radius:50%}.donut-center{position:relative;text-align:center}.donut-center .pct{font-weight:800;letter-spacing:-.8px;font-size:25px}.donut-center .tit{font-size:11px;color:var(--muted);margin-top:3px}.legend{display:grid;gap:13px;min-width:148px}.legend-line{display:grid;grid-template-columns:9px 1fr;gap:9px;align-items:center}.dot{width:9px;height:9px;border-radius:50%}.legend-line .name{font-size:11px;color:var(--muted)}.legend-line .money{font-weight:700;font-size:14px;margin-top:4px}.breakdown{padding:20px 23px}.a-row{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #eef0f5}.a-row:last-child{border:none}.account-icon{height:28px;width:28px;display:grid;place-items:center;border-radius:9px;color:#4863b0;background:#edf1ff;font-size:11px;font-weight:800}.a-row .mainline{font-size:12px;font-weight:700}.a-row .subline{font-size:11px;color:var(--muted);margin-top:4px}.a-row .right{text-align:right;font-size:12px;font-weight:700}.a-row .right small{font-weight:500;color:var(--muted);font-size:11px;display:block;margin-top:5px}.section-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:26px 0 12px}.section-header h2{font-size:18px;margin:0}.section-header .desc{font-size:12px;color:var(--muted);margin:5px 0 0}.table-wrap{overflow:auto}.stock-table{width:100%;border-collapse:collapse;min-width:840px}.stock-table th{text-align:left;background:#f7f9fc;color:#7c8aa0;font-size:11px;font-weight:700;padding:13px 16px;white-space:nowrap}.stock-table td{border-top:1px solid #eef0f5;padding:13px 16px;vertical-align:middle;white-space:nowrap}.stock-table td.right,.stock-table th.right{text-align:right}.stock-table td.symbol{font-weight:800}.stock-table td.symbol small{display:block;color:#8b97a7;font-size:11px;margin-top:4px;font-weight:500}.stock-table .inline-num{width:98px;border:1px solid #dae1eb;padding:8px;border-radius:8px;text-align:right;font-size:12px;background:#fff}.stock-table .pricefield{display:flex;align-items:center;gap:5px;justify-content:flex-end}.empty{padding:42px 18px;text-align:center;color:#8694a8;line-height:1.7;font-size:13px}.footer-panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}.market-list{padding:9px 23px 18px}.market-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;border-bottom:1px solid #edf0f5;padding:14px 0}.market-row:last-child{border:0}.market-name{font-weight:700;font-size:12px}.market-note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px}.details-table{padding:8px 22px 18px}.details-table .line{display:flex;justify-content:space-between;gap:12px;padding:10px 0;font-size:12px;border-bottom:1px solid #eff1f5}.details-table .line:last-child{border:0}.details-table .val{font-weight:750;text-align:right}.footnote{color:#8794a6;font-size:11px;line-height:1.7;padding-top:19px}.modal-overlay{position:fixed;inset:0;background:rgba(12,20,38,.56);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}.modal-overlay.open{display:flex}.modal{background:white;width:100%;max-width:510px;max-height:94vh;overflow:auto;border-radius:17px;box-shadow:0 30px 90px rgba(5,15,41,.2);padding:23px}.modal h2{margin:0 0 4px;font-size:20px}.modal-intro{font-size:12px;color:var(--muted);margin:0 0 22px;line-height:1.5}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.field.full{grid-column:span 2}.field label{font-size:11px;color:#64738c;font-weight:700}.field input,.field select,.field textarea{border:1px solid #d8dfeb;border-radius:9px;padding:11px;color:var(--ink);width:100%;background:white;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:#7390fc;box-shadow:0 0 0 3px #eaf0ff}.field textarea{resize:vertical;min-height:80px}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:21px}.mobile-tabs{display:none;gap:7px;overflow:auto;margin:-8px 0 21px;padding-bottom:5px}.tab{white-space:nowrap;border:1px solid var(--line);background:#fff;color:var(--muted);padding:9px 13px;border-radius:9px;font-size:12px;font-weight:750}.tab.active{background:var(--blue);color:white}.account-banner{background:linear-gradient(120deg,#253b64,#4263a2);color:white;border-radius:15px;padding:22px 24px;margin-bottom:19px;display:flex;justify-content:space-between;align-items:center;gap:14px}.account-banner h2{margin:0 0 5px;font-size:20px}.account-banner p{margin:0;color:#c9d6f1;font-size:12px}.account-banner .limit{font-size:12px;color:#c5d7f8;text-align:right}.account-banner .limit b{display:block;color:#fff;font-size:16px;margin-top:5px}.truncate{overflow:hidden;text-overflow:ellipsis;max-width:240px}
 @media(max-width:1200px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}.cols{grid-template-columns:1fr}.footer-panels{grid-template-columns:1fr}}
 @media(max-width:860px){.shell{display:block}.sidebar{display:none}.main{padding:24px 17px 42px}.mobile-tabs{display:flex}.top{flex-direction:column}.top h1{font-size:24px}.top-actions{justify-content:flex-start}.chart-holder{flex-wrap:wrap}.donut{width:168px;height:168px}.donut:before{inset:27px}.metric{padding:17px;min-height:107px}.grid4{gap:9px}.metric .amount{font-size:20px}.account-banner{flex-direction:column;align-items:flex-start}.account-banner .limit{text-align:left}}
 @media(max-width:420px){.grid4{grid-template-columns:1fr 1fr}.metric .amount{font-size:17px}.chart-holder{gap:17px;padding:20px 12px}.donut{width:145px;height:145px}.donut:before{inset:24px}.donut-center .pct{font-size:21px}.legend{min-width:125px}.legend-line .money{font-size:12px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:span 1}}
+.quote-info{display:none;border:1px solid #d7e5fa;background:#f1f6ff;color:#345386;border-radius:12px;padding:12px 15px;font-size:12px;line-height:1.7;margin-bottom:17px}.quote-info.ok{background:#edf9f4;color:#12684d;border-color:#cdebdc}.quote-info.warn{background:#fff9ee;color:#925b19;border-color:#f0dfb8}
 </style>
 </head>
 <body>
 <div class="shell">
- <aside class="sidebar"><div class="brand">◈ Portfolio Studio<small>Personal Investment Desk</small></div><div><div class="side-label">Portfolio</div><div id="side-nav"></div></div><div class="side-bottom"><strong>資料儲存方式</strong>此版資料保存在本瀏覽器。若要換電腦或分享更新紀錄，請先匯出 JSON 備份。網站尚未連接證券商、即時行情或雲端同步。若將網站放上外網，資料仍只會儲存在目前裝置／瀏覽器；沒有帳號登入保護。</div></aside>
- <main class="main"><div class="top"><div><div class="eyebrow">My Investment Workspace</div><h1 id="page-title">五帳戶投資總覽</h1><p id="page-desc">現金・持股配置・個股未實現損益・交易紀錄</p></div><div class="top-actions"><button class="btn" id="import-btn">匯入備份</button><button class="btn" id="export-btn">匯出備份</button><button class="btn ghost" data-modal="names">管理帳戶名稱</button><button class="btn ghost" data-modal="cash">調整現金</button><button class="btn ghost" data-modal="position">新增庫存</button><button class="btn ghost" data-modal="settlement">待交割入帳</button><button class="btn primary" data-modal="trade">＋ 登記交易</button></div></div>
- <div class="mobile-tabs" id="mobile-nav"></div><div class="notice" id="data-notice"></div><div id="dashboard"></div>
- <div class="footnote">注意：投資市值、資產比例及損益需使用市價。未輸入市價的標的暫以「投入成本」代替市值，因此相關比例僅為暫估。每日交易額度不是現金、不是總資產，也不會加入圓餅圖。交易費用與稅額可於登記交易時輸入。網站可在外網主機開啟，但此版本資料只保存在各自的瀏覽器，不會自動跨裝置同步；請勿在共用裝置輸入私密財務資訊。此工具僅作記錄與風險觀察，不構成投資建議。</div>
+ <aside class="sidebar"><div class="brand">◈ Portfolio Studio<small>Personal Investment Desk</small></div><div><div class="side-label">Portfolio</div><div id="side-nav"></div></div><div class="side-bottom"><strong>資料儲存方式</strong>此版資料保存在本瀏覽器。若要換電腦或分享更新紀錄，請先匯出 JSON 備份。V3 使用 GitHub Actions 定時更新官方台股每日收盤行情（非盤中即時），尚未連接證券商或雲端同步。若將網站放上外網，資料仍只會儲存在目前裝置／瀏覽器；沒有帳號登入保護。</div></aside>
+ <main class="main"><div class="top"><div><div class="eyebrow">My Investment Workspace</div><h1 id="page-title">五帳戶投資總覽</h1><p id="page-desc">現金・持股配置・個股未實現損益・官方盤後行情</p></div><div class="top-actions"><button class="btn quote-refresh" id="quote-refresh" title="讀取 GitHub Pages 已發布的最新官方盤後收盤行情（非盤中即時）">↻ 同步台股盤後行情</button><button class="btn" id="import-btn">匯入備份</button><button class="btn" id="export-btn">匯出備份</button><button class="btn ghost" data-modal="names">管理帳戶名稱</button><button class="btn ghost" data-modal="cash">調整現金</button><button class="btn ghost" data-modal="position">新增庫存</button><button class="btn ghost" data-modal="settlement">待交割入帳</button><button class="btn primary" data-modal="trade">＋ 登記交易</button></div></div>
+ <div class="mobile-tabs" id="mobile-nav"></div><div class="notice" id="data-notice"></div><div class="quote-info" id="quote-info" role="status" aria-live="polite"></div><div id="dashboard"></div>
+ <div class="footnote">注意：投資市值、資產比例及損益需使用市價。未取得報價的標的暫以「投入成本」代替市值，因此相關比例僅為暫估。每日交易額度不是現金、不是總資產，也不會加入圓餅圖。交易費用與稅額可於登記交易時輸入。網站可在外網主機開啟，但此版本資料只保存在各自的瀏覽器，不會自動跨裝置同步；請勿在共用裝置輸入私密財務資訊。此工具僅作記錄與風險觀察，不構成投資建議。</div>
  </main>
 </div>
 <div class="modal-overlay" id="overlay" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" id="modal-content"></div></div>
 <input id="file-in" type="file" accept=".json,application/json" style="display:none"/>
 <script>
 (function(){'use strict';
-const STORAGE='chester_portfolio_studio_v2';
+const STORAGE='chester_portfolio_studio_v2'; // V3 reads V2 browser data without migration
 const starting={version:2,fx:null,accounts:[
  {id:'A',label:'台股 A',broker:'未設定',currency:'TWD',cash:0,limit:0,holdings:[]},
  {id:'B',label:'台股 B',broker:'未設定',currency:'TWD',cash:0,limit:0,holdings:[]},
@@ -34,7 +35,7 @@ const starting={version:2,fx:null,accounts:[
  {id:'E',label:'美股 E',broker:'未設定',currency:'USD',cash:0,limit:null,holdings:[]}],
  markets:[{id:'TAIEX',name:'台灣加權指數',support:'',resistance:'',note:''},{id:'TPEX',name:'櫃買指數',support:'',resistance:'',note:''},{id:'SPX',name:'S&P 500',support:'',resistance:'',note:''},{id:'IXIC',name:'NASDAQ',support:'',resistance:'',note:''}],transactions:[],cashAdjustments:[],settlements:[]};
 let state;try{state=JSON.parse(localStorage.getItem(STORAGE))||structuredClone(starting)}catch(e){state=structuredClone(starting)}
-let selection='all';const $=sel=>document.querySelector(sel);
+let selection='all';let publicIndexQuotes={};const $=sel=>document.querySelector(sel);
 function copy(o){return JSON.parse(JSON.stringify(o))}
 function persist(){try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){alert('瀏覽器儲存失敗，請立即使用匯出備份。')}}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -87,9 +88,13 @@ function figures(d,cur,all){
  <div class="card metric"><div class="label">持股${d.missing?'暫估':''}市值</div><div class="amount">${money(d.hold,cur)}</div><div class="sub">持股成本：${money(d.cost,cur)}</div></div>
  <div class="card metric"><div class="label">未實現損益（已報價部分）</div><div class="amount ${d.unrealized<0?'negative':d.missing&&Math.abs(d.unrealized)<.0001?'':'positive'}">${d.missing&&Math.abs(d.unrealized)<.0001?'待報價':money(d.unrealized,cur)}</div><div class="sub">${d.missing?`${d.missing} 檔未提供市價，合計尚未完整`:'已輸入市價的損益合計'}</div></div></div>`;
 }
-function stockRow(a,h){const valid=h.price!==null&&h.price!==undefined;const market=valid?h.qty*h.price:null;const gain=valid?market-h.qty*h.avg:null;const ret=valid&&h.avg>0?((h.price/h.avg)-1)*100:null;const real=(state.transactions||[]).filter(t=>t.account===a.id&&t.symbol===h.symbol&&t.side==='sell').reduce((s,t)=>s+num(t.realized),0);return `<tr><td class="symbol">${esc(h.symbol)}<small>${esc(h.name)}</small></td><td class="right">${fmt(h.qty,4)}</td><td class="right">${money(h.avg,a.currency,2)}</td><td class="right">${money(h.qty*h.avg,a.currency)}</td><td class="right"><div class="pricefield"><input class="inline-num quote" data-account="${esc(a.id)}" data-symbol="${esc(h.symbol)}" value="${valid?esc(h.price):''}" type="number" min="0.0001" step="any" placeholder="輸入市價" title="輸入目前股價，按 Enter 或離開欄位儲存"/></div></td><td class="right">${valid?money(market,a.currency):'—'}</td><td class="right ${gain===null?'':gain>=0?'positive':'negative'}">${gain===null?'待報價':(gain>0?'+':'')+money(gain,a.currency)}<br><span class="muted" style="font-size:11px">${ret===null?'':(ret>0?'+':'')+pct(ret)}</span></td><td class="right ${real<0?'negative':real>0?'positive':''}">${real===0?'—':money(real,a.currency)}</td><td class="right"><div style="display:flex;gap:6px"><button class="btn small" data-position="${esc(a.id)}|${esc(h.symbol)}">編輯庫存</button><button class="btn small" data-strategy="${esc(a.id)}|${esc(h.symbol)}">價位／筆記</button></div></td></tr>`}
-function tableFor(as){const rows=as.flatMap(a=>a.holdings.filter(h=>h.qty>0).map(h=>stockRow(a,h)));return `<div class="section-header"><div><h2>個股損益明細</h2><p class="desc">在「目前市價」欄輸入價格後，即時計算未實現損益、報酬率及圓餅圖。</p></div><span class="pill">${rows.length} 筆持股</span></div><div class="card table-wrap">${rows.length?`<table class="stock-table"><thead><tr><th>股票</th><th class="right">股數</th><th class="right">平均成本</th><th class="right">持有成本</th><th class="right">目前市價</th><th class="right">目前市值</th><th class="right">未實現損益 / 報酬率</th><th class="right">已實現損益*</th><th></th></tr></thead><tbody>${rows.join('')}</tbody></table>`:`<div class="empty">此範圍尚無登錄持股。可以使用「新增庫存」匯入既有股票，或透過「登記交易」新增買入。</div>`}</div><div class="hint" style="font-size:11px;line-height:1.6;margin-top:9px">*已實現損益僅統計從本網站登記的賣出紀錄，不代表券商歷史累積損益；已報價的未實現損益未包含預估賣出手續費與證交稅。</div>`}
-function marketPanel(){return `<div class="card"><div class="card-header"><h2>大盤觀察價位</h2><span class="pill">自訂策略</span></div><div class="market-list">${state.markets.map(m=>`<div class="market-row"><div><div class="market-name">${esc(m.name)}</div><div class="market-note">支撐：${m.support?esc(m.support):'未設定'}　·　壓力：${m.resistance?esc(m.resistance):'未設定'}${m.note?'<div style="margin-top:5px">'+esc(m.note)+'</div>':''}</div></div><button class="btn small" data-market="${esc(m.id)}">編輯</button></div>`).join('')}</div></div>`}
+function stockRow(a,h){const valid=h.price!==null&&h.price!==undefined;const market=valid?h.qty*h.price:null;const gain=valid?market-h.qty*h.avg:null;const ret=valid&&h.avg>0?((h.price/h.avg)-1)*100:null;const real=(state.transactions||[]).filter(t=>t.account===a.id&&t.symbol===h.symbol&&t.side==='sell').reduce((s,t)=>s+num(t.realized),0);return `<tr><td class="symbol">${esc(h.symbol)}<small>${esc(h.name)}</small></td><td class="right">${fmt(h.qty,4)}</td><td class="right">${money(h.avg,a.currency,2)}</td><td class="right">${money(h.qty*h.avg,a.currency)}</td><td class="right"><div class="pricefield"><input class="inline-num quote" data-account="${esc(a.id)}" data-symbol="${esc(h.symbol)}" value="${valid?esc(h.price):''}" type="number" min="0.0001" step="any" placeholder="輸入市價" title="可手動輸入市價；取得官方行情時會標註最近交易日"/></div><div class="muted" style="font-size:10px;margin-top:4px">${valid ? esc(h.priceDate ? `收盤 ${h.priceDate} · ${h.priceSource||'官方'}` : '手動價格／日期未記錄') : '待取得行情'}</div></td><td class="right">${valid?money(market,a.currency):'—'}</td><td class="right ${gain===null?'':gain>=0?'positive':'negative'}">${gain===null?'待報價':(gain>0?'+':'')+money(gain,a.currency)}<br><span class="muted" style="font-size:11px">${ret===null?'':(ret>0?'+':'')+pct(ret)}</span></td><td class="right ${real<0?'negative':real>0?'positive':''}">${real===0?'—':money(real,a.currency)}</td><td class="right"><div style="display:flex;gap:6px"><button class="btn small" data-position="${esc(a.id)}|${esc(h.symbol)}">編輯庫存</button><button class="btn small" data-strategy="${esc(a.id)}|${esc(h.symbol)}">價位／筆記</button></div></td></tr>`}
+function tableFor(as){const rows=as.flatMap(a=>a.holdings.filter(h=>h.qty>0).map(h=>stockRow(a,h)));return `<div class="section-header"><div><h2>個股損益明細</h2><p class="desc">按「同步台股盤後行情」可重新讀取 GitHub Pages 最近部署的官方收盤價；也可在價格欄手動輸入。</p></div><span class="pill">${rows.length} 筆持股</span></div><div class="card table-wrap">${rows.length?`<table class="stock-table"><thead><tr><th>股票</th><th class="right">股數</th><th class="right">平均成本</th><th class="right">持有成本</th><th class="right">市價／最近收盤</th><th class="right">目前市值</th><th class="right">未實現損益 / 報酬率</th><th class="right">已實現損益*</th><th></th></tr></thead><tbody>${rows.join('')}</tbody></table>`:`<div class="empty">此範圍尚無登錄持股。可以使用「新增庫存」匯入既有股票，或透過「登記交易」新增買入。</div>`}</div><div class="hint" style="font-size:11px;line-height:1.6;margin-top:9px">*已實現損益僅統計從本網站登記的賣出紀錄，不代表券商歷史累積損益；已報價的未實現損益未包含預估賣出手續費與證交稅。</div>`}
+function marketPanel(){return `<div class="card"><div class="card-header"><h2>大盤觀察價位</h2><span class="pill">官方盤後／自訂策略</span></div><div class="market-list">${state.markets.map(m=>{
+ const q=publicIndexQuotes[m.id];const live=q&&Number.isFinite(q.price)&&q.price>0;
+ const level=live?`<div class="market-note" style="color:var(--blue);font-weight:700">最近收盤：${fmt(q.price,2)}　${esc(q.date||'')} · ${esc(q.source||'官方')}</div>`:'';
+ return `<div class="market-row"><div><div class="market-name">${esc(m.name)}</div>${level}<div class="market-note">支撐：${m.support?esc(m.support):'未設定'}　·　壓力：${m.resistance?esc(m.resistance):'未設定'}${m.note?'<div style="margin-top:5px">'+esc(m.note)+'</div>':''}</div></div><button class="btn small" data-market="${esc(m.id)}">編輯</button></div>`;
+ }).join('')}</div></div>`}
 function detailsPanel(as){
  const count=as.reduce((s,a)=>s+a.holdings.length,0);
  const last=(state.transactions||[]).filter(t=>as.some(a=>a.id===t.account)).slice(-3).reverse();
@@ -102,13 +107,13 @@ function detailsPanel(as){
  <div class="line"><span class="muted">待交割應收款</span><span class="val">${money(pending,cur)}</span></div>
  <div class="line"><span class="muted">近期網站交易</span><span class="val">${last.length} / 共 ${state.transactions.filter(t=>as.some(a=>a.id===t.account)).length} 筆</span></div>
  <div class="line"><span class="muted">最新紀錄</span><span class="val">${last.length?esc(last[0].date)+' · '+esc(last[0].symbol):'尚無買賣紀錄'}</span></div>
- <div class="line"><span class="muted">行情更新方式</span><span class="val">手動輸入（V1）</span></div>
+ <div class="line"><span class="muted">行情更新方式</span><span class="val">台股官方盤後收盤價／手動輸入</span></div>
  <div class="line"><span class="muted">資料儲存</span><span class="val">目前瀏覽器</span></div>
  <div class="line"><span class="muted">美股匯率</span><span class="val">${state.fx?fmt(state.fx,4)+' TWD / USD':'未設定'} <button class="btn small" data-modal="fx" style="margin-left:7px">設定</button></span></div></div></div>`;
 }
 function nav(){const items=[{id:'all',label:'全部帳戶',meta:'Overview'},...state.accounts.map(a=>({id:a.id,label:`${accountTitle(a)} · ${a.broker}`,meta:a.currency}))];$('#side-nav').innerHTML=items.map(i=>`<button class="nav-btn ${selection===i.id?'selected':''}" data-tab="${esc(i.id)}"><span>${esc(i.label)}</span><span class="meta">${esc(i.meta)}</span></button>`).join('');$('#mobile-nav').innerHTML=items.map(i=>`<button class="tab ${selection===i.id?'active':''}" data-tab="${esc(i.id)}">${i.id==='all'?'總覽':`${esc(accountTitle(getA(i.id)))}`}</button>`).join('')}
 function render(){nav();const all=selection==='all';const a=all?null:getA(selection);const as=all?state.accounts:[a];const d=all?consolidated():({...derived(a),cash:a.cash});const currency=all?'TWD':a.currency;$('#page-title').textContent=all?'五帳戶投資總覽':`${accountTitle(a)} · ${a.broker}`;$('#page-desc').textContent=all?'五帳戶分開管理，首頁合併檢視台股與美股（美股非零資產需設定匯率）':`${a.currency==='TWD'?'台股':'美股'} · 獨立現金、庫存及損益管理`;
- $('#data-notice').textContent=d.excluded?'尚未設定 USD/TWD 匯率，首頁合計不包含美股資產。請先設定匯率。':(d.missing?`目前有 ${d.missing} 檔持股尚未輸入市價，資產總額與圓餅圖暫以原始成本補足，僅供檢視投入配置；不能當作即時資產比例。你可以直接在下方「目前市價」欄輸入行情。`:'已登錄持股皆有參考市價。此頁不會自行更新股價，請留意報價的時間；如有未提供庫存的帳戶，資產仍可能不完整。');
+ $('#data-notice').textContent=d.excluded?'尚未設定 USD/TWD 匯率，首頁合計不包含美股資產。請先設定匯率。':(d.missing?`目前有 ${d.missing} 檔持股尚未取得市價，資產總額與圓餅圖暫以原始成本補足，僅供檢視投入配置；不能當作即時資產比例。可點選「同步台股盤後行情」，或在下方價格欄手動輸入。`:'已登錄持股皆有參考市價，但報價可能是先前交易日的收盤價或手動價格。請查看每檔行情日期；仍可能有尚未提供庫存的帳戶。');
 
  let banner=all?'':`<div class="account-banner"><div><h2>${esc(accountTitle(a))} · ${esc(a.broker)}</h2><p>${a.currency==='TWD'?'台股':'美股'} · 獨立帳戶資產與績效 <button type="button" class="btn small" style="margin-left:8px" data-modal="names">更改名稱</button></p></div><div class="limit">${a.limit===null?'每日交易額度：同可用現金':'每日交易額度'}<b>${a.limit===null?'依帳戶可用現金':money(a.limit,a.currency)}</b></div></div>`;
  let accountsPanel=`<div class="card"><div class="card-header"><h2>${all?'各帳戶現金概況':'持股與額度說明'}</h2><button type="button" class="btn small" data-modal="names">重新命名</button></div><div class="breakdown">${as.map(accountInfo).join('')}</div></div>`;
@@ -118,7 +123,7 @@ function modal(title,intro,body,actions){$('#modal-content').innerHTML=`<h2>${ti
 function closeModal(){$('#overlay').classList.remove('open');$('#overlay').setAttribute('aria-hidden','true');}
 function accountOpts(){return state.accounts.map(a=>`<option value="${esc(a.id)}" ${selection===a.id?'selected':''}>${esc(accountTitle(a))} · ${esc(a.broker)} (${esc(a.currency)})</option>`).join('')}
 function modalNames(){
- const fields=state.accounts.map(a=>`<div class="field"><label>${esc(a.id)} · 帳戶顯示名稱</label><input name="name_${esc(a.id)}" maxlength="32" value="${esc(accountTitle(a))}" required placeholder="例如：長期投資"/></div><div class="field"><label>${esc(a.id)} · 券商名稱</label><input name="broker_${esc(a.id)}" maxlength="32" value="${esc(a.broker)}" required placeholder="例如：永豐"/></div>`).join('');
+ const fields=state.accounts.map(a=>`<div class="field"><label>${esc(a.id)} · 帳戶顯示名稱</label><input name="name_${esc(a.id)}" maxlength="32" value="${esc(accountTitle(a))}" required placeholder="例如：長期投資"/></div><div class="field"><label>${esc(a.id)} · 券商名稱</label><input name="broker_${esc(a.id)}" maxlength="32" value="${esc(a.broker)}" required placeholder="例如：券商名稱"/></div>`).join('');
  modal('管理五個帳戶名稱','可以自行修改每個帳戶的顯示名稱和券商。A–E 是固定的帳戶識別碼，持股、現金、交易資料都會繼續對應原帳戶，不受更名影響。',`<form id="modal-form"><div class="form-grid">${fields}</div></form>`);
  $('#modal-form').onsubmit=e=>{e.preventDefault();const f=new FormData(e.currentTarget);const updates=[];
  for(const a of state.accounts){const name=String(f.get('name_'+a.id)||'').trim(),broker=String(f.get('broker_'+a.id)||'').trim();if(!name||!broker){alert('五個帳戶都需要名稱及券商。');return;}updates.push({a,name,broker});}
@@ -188,11 +193,114 @@ function modalMarket(id){let m=state.markets.find(x=>x.id===id);if(!m)return;mod
 function modalStrategy(id,symbol){let a=getA(id),h=a?.holdings.find(x=>x.symbol===symbol);if(!h)return;modal(`${esc(symbol)} · 策略與注意價位`,`${esc(accountTitle(a))} · ${esc(h.name)}。這裡保存你的想法，不會當作自動生成的買賣建議。`,`<form id="modal-form"><div class="form-grid"><div class="field"><label>關鍵支撐</label><input name="support" value="${esc(h.support)}" placeholder="例如 150"/></div><div class="field"><label>關鍵壓力</label><input name="resistance" value="${esc(h.resistance)}" placeholder="例如 175"/></div><div class="field full"><label>操作想法／提醒事項</label><textarea name="note" placeholder="突破、跌破、量能或觀察條件...">${esc(h.note)}</textarea></div></div></form>`);$('#modal-form').onsubmit=e=>{e.preventDefault();let f=new FormData(e.currentTarget);h.support=String(f.get('support')||'');h.resistance=String(f.get('resistance')||'');h.note=String(f.get('note')||'');persist();closeModal();render()}}
 function validateImport(s){if(!s||!Array.isArray(s.accounts)||s.accounts.length!==5||!Array.isArray(s.transactions))throw Error('資料不是此 Dashboard 的備份格式。');for(let a of s.accounts){if(!['A','B','C','D','E'].includes(a.id)||!Array.isArray(a.holdings)||!Number.isFinite(Number(a.cash)))throw Error('帳戶資料不完整。');for(let h of a.holdings){if(!h.symbol||num(h.qty)<0||num(h.avg)<0)throw Error('持股資料格式錯誤。')}}if(!Array.isArray(s.markets))s.markets=copy(starting.markets);if(!Array.isArray(s.cashAdjustments))s.cashAdjustments=[];if(!Array.isArray(s.settlements))s.settlements=[];for(let a of s.accounts){if(!Number.isFinite(num(a.pending))||num(a.pending)<0)throw Error('待交割金額格式錯誤。');if(a.label!==undefined&&(typeof a.label!=='string'||a.label.length>60))throw Error('帳戶名稱格式不正確。');if(a.broker!==undefined&&(typeof a.broker!=='string'||a.broker.length>60))throw Error('券商名稱格式不正確。')}}
 document.addEventListener('click',e=>{const tab=e.target.closest('[data-tab]');if(tab){selection=tab.dataset.tab;render();window.scrollTo(0,0);return}const mo=e.target.closest('[data-modal]');if(mo){if(mo.dataset.modal==='names')modalNames();if(mo.dataset.modal==='trade')modalTrade();if(mo.dataset.modal==='position')modalPosition();if(mo.dataset.modal==='cash')modalCash();if(mo.dataset.modal==='fx')modalFx();if(mo.dataset.modal==='settlement')modalSettlement();return}const mr=e.target.closest('[data-market]');if(mr){modalMarket(mr.dataset.market);return}const pos=e.target.closest('[data-position]');if(pos){const [id,symbol]=pos.dataset.position.split('|');modalPosition(id,symbol);return}const st=e.target.closest('[data-strategy]');if(st){const [id,symbol]=st.dataset.strategy.split('|');modalStrategy(id,symbol);return}if(e.target===$('#overlay'))closeModal();});
-document.addEventListener('change',e=>{if(e.target.matches('.quote')){const inp=e.target,a=getA(inp.dataset.account),h=a?.holdings.find(x=>x.symbol===inp.dataset.symbol);if(!h)return;const raw=inp.value.trim();if(raw==='')h.price=null;else{const p=Number(raw);if(!Number.isFinite(p)||p<=0){alert('市價必須是正數。');return}h.price=p;}persist();render()}});
+document.addEventListener('change',e=>{if(e.target.matches('.quote')){const inp=e.target,a=getA(inp.dataset.account),h=a?.holdings.find(x=>x.symbol===inp.dataset.symbol);if(!h)return;const raw=inp.value.trim();if(raw===''){h.price=null;h.priceDate=null;h.priceSource=null;}else{const p=Number(raw);if(!Number.isFinite(p)||p<=0){alert('市價必須是正數。');return}h.price=p;h.priceDate=null;h.priceSource='手動';}persist();render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.target.matches('.quote')&&e.key==='Enter'){e.preventDefault();e.target.blur()}});
 $('#export-btn').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`portfolio_backup_${new Date().toLocaleDateString('sv-SE')}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),5000)};
-$('#import-btn').onclick=()=>$('#file-in').click();$('#file-in').onchange=async e=>{let file=e.target.files?.[0];if(!file)return;try{let s=JSON.parse(await file.text());validateImport(s);if(confirm('匯入將取代目前此瀏覽器的資料。建議先匯出備份。確定繼續嗎？')){state=s;persist();selection='all';render();}}catch(err){alert('無法匯入：'+err.message)}e.target.value=''};
+$('#import-btn').onclick=()=>$('#file-in').click();$('#file-in').onchange=async e=>{let file=e.target.files?.[0];if(!file)return;try{let s=JSON.parse(await file.text());validateImport(s);if(confirm('匯入將取代目前此瀏覽器的資料。建議先匯出備份。確定繼續嗎？')){state=s;persist();selection='all';render();updateOfficialPrices(false);}}catch(err){alert('無法匯入：'+err.message)}e.target.value=''};
+
+// GitHub Pages hosts public prices as same-origin static data (no portfolio data).
+// The GitHub Actions workflow fetches official close prices on trading weekdays.
+const OFFICIAL_ENDPOINTS=[
+ {source:'TWSE',url:'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL'},
+ {source:'TPEx',url:'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes'}
+];
+function apiDate(raw){
+ const str=String(raw||'').trim().replace(/[^0-9]/g,'');
+ if(str.length===7){const y=Number(str.slice(0,3))+1911;return `${y}-${str.slice(3,5)}-${str.slice(5)}`}
+ if(str.length===8)return `${str.slice(0,4)}-${str.slice(4,6)}-${str.slice(6)}`;
+ return null;
+}
+function validClose(raw){
+ const n=Number(String(raw??'').replace(/,/g,'').trim());
+ return Number.isFinite(n)&&n>0?n:null;
+}
+function extractQuotes(rows,market){
+ if(!Array.isArray(rows))throw Error('上游資料格式不是 JSON 陣列');
+ const out={};
+ for(const row of rows){
+  const symbol=String(market==='TWSE'?row.Code:row.SecuritiesCompanyCode??row.Code??'').trim();
+  const price=validClose(market==='TWSE'?row.ClosingPrice:row.Close);
+  const date=apiDate(row.Date??row.date);
+  if(!symbol||price===null||!date)continue;
+  out[symbol]={price,date,source:market};
+ }
+ return out;
+}
+let quoteBusy=false;
+function quoteMessage(message,kind=''){
+ const e=$('#quote-info');if(!e)return;
+ e.textContent=message;e.className='quote-info '+kind;e.style.display=message?'block':'none';
+}
+async function directPrices(){
+ // Fallback only. Browser CORS and IP restrictions can prevent these calls.
+ const responses=await Promise.allSettled(OFFICIAL_ENDPOINTS.map(async ep=>{
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),14000);
+  try{
+   const res=await fetch(ep.url,{signal:ctrl.signal,cache:'no-store'});
+   if(!res.ok)throw Error(`HTTP ${res.status}`);
+   const j=await res.json();return {source:ep.source,quotes:extractQuotes(j,ep.source)};
+  }finally{clearTimeout(timer)}
+ }));
+ const quotes={},errors=[];
+ responses.forEach((r,i)=>{if(r.status==='fulfilled')Object.assign(quotes,r.value.quotes);else errors.push(`${OFFICIAL_ENDPOINTS[i].source}：${r.reason?.message||'無法取得（CORS 或網路限制）'}`)});
+ return {quotes,errors,indices:{},asOf:null,priceType:'official-daily-close',isRealtime:false};
+}
+async function publishedPrices(){
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),14000);
+ try{
+  // Relative URL handles GitHub Pages' /portfolio-studio/ project subpath.
+  const url=new URL('./data/quotes.json',location.href);
+  url.searchParams.set('v',String(Date.now()));
+  const resp=await fetch(url.toString(),{signal:ctrl.signal,cache:'no-store'});
+  if(!resp.ok)throw Error('GitHub Pages 行情檔 HTTP '+resp.status);
+  const data=await resp.json();
+  if(!data||!data.quotes||!Object.keys(data.quotes).length||data.priceType!=='official-daily-close')throw Error('行情 JSON 缺少有效收盤價');
+  return data;
+ }finally{clearTimeout(timer)}
+}
+async function updateOfficialPrices(force=false){
+ if(quoteBusy)return;
+ quoteBusy=true;
+ const btn=$('#quote-refresh');if(btn){btn.disabled=true;btn.textContent='讀取行情中…'}
+ quoteMessage('正在讀取已發布的 TWSE / TPEx 官方盤後行情；非即時報價。');
+ try{
+  let data,from='GitHub Pages 每日市場行情';
+  try{data=await publishedPrices()}
+  catch(err){
+   from='瀏覽器官方 API 備援';data=await directPrices();
+   data.errors=[`已發布行情檔尚不可用：${err.message}`,...(data.errors||[])];
+  }
+  const all=data.quotes||{};let changed=0,skipped=0,unfound=[];
+  publicIndexQuotes=data.indices||{};
+  const tw=state.accounts.filter(a=>a.currency==='TWD').flatMap(a=>a.holdings.filter(h=>h.qty>0));
+  for(const h of tw){
+   const q=all[String(h.symbol||'').trim()];
+   if(!q||!Number.isFinite(Number(q.price))||Number(q.price)<=0||!/^\d{4}-\d{2}-\d{2}$/.test(String(q.date||''))){unfound.push(h.symbol);continue}
+   if(h.priceDate && h.priceDate>q.date){skipped++;continue}
+   // Never overwrite manual quotes in the background; explicit button allows it.
+   if(!force&&h.price!==null&&h.price!==undefined&&!['TWSE','TPEx'].includes(h.priceSource)){skipped++;continue}
+   if(h.price!==q.price||h.priceDate!==q.date||h.priceSource!==q.source){
+    h.price=Number(q.price);h.priceDate=q.date;h.priceSource=q.source;changed++;
+   }
+  }
+  if(changed)persist();render();
+  const dates=[...new Set(Object.values(all).map(x=>x.date).filter(Boolean))].sort();const last=dates.at(-1)||'未知';
+  let message=`官方最近交易日收盤 ${last}（${from}）：${changed} 筆持股市價已更新。`;
+  if(!tw.length)message+=' 尚未匯入台股庫存，暫只顯示大盤資料。';
+  if(skipped)message+=` 保留 ${skipped} 筆手動或較新報價。`;
+  if(unfound.length)message+=` 缺少行情：${[...new Set(unfound)].join('、')}。`;
+  if(data.asOf)message+=` 抓取時間 ${new Date(data.asOf).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false})}（台灣時間）。`;
+  if(data.errors?.length)message+=` 部分來源警告：${data.errors.join('；')}。`;
+  if(!Object.keys(all).length)message='行情目前無法取得，沒有更新任何價格；'+(data.errors||[]).join('；')+'。可等 GitHub Actions 完成部署後再重試。';
+  quoteMessage(message,Object.keys(all).length?'ok':'warn');
+ }catch(e){quoteMessage('行情讀取失敗：'+e.message+'。沒有更改你的持股與現金，請檢查 GitHub Actions 是否成功。','warn')}
+ finally{quoteBusy=false;if(btn){btn.disabled=false;btn.textContent='↻ 同步台股盤後行情'}}
+}
+$('#quote-refresh').onclick=()=>updateOfficialPrices(true);
+
 render();
+// 開頁時只填入缺少的價格，不覆寫既有手動市價。
+setTimeout(()=>{if(state.accounts.some(a=>a.currency==='TWD'&&a.holdings.some(h=>h.qty>0)))updateOfficialPrices(false)},650);
 })();
 </script>
 </body></html>
