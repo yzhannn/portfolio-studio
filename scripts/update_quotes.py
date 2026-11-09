@@ -124,6 +124,7 @@ def build_snapshot(fetcher=load_json, clock=None):
             errors.append(f'{name}: {type(exc).__name__}: {exc}')
             print(f'{name}: FAILED: {exc}', file=sys.stderr)
     us_quotes, us_errors, us_succeeded = fetch_us_quotes(clock)
+    print(f'US quote coverage check: AAOI={us_quotes.get("AAOI", "MISSING")}', file=sys.stderr)
     errors.extend(us_errors)
     succeeded.extend(us_succeeded)
     if not quotes:
