@@ -131,6 +131,90 @@ def parse_stooq_csv(raw, code):
     return max(result, key=lambda v: v["date"])
 
 
+
+def fetch_nasdaq_index(ticker, label):
+    """Nasdaq public quote endpoint; requires a recent dated index value."""
+    url = f"https://api.nasdaq.com/api/quote/{ticker}/info?assetclass=index"
+    data = json.loads(_request(url, 1_500_000)).get("data")
+    if not isinstance(data, dict) or str(data.get("symbol", "")).upper() != ticker:
+        raise ValueError("Nasdaq API has no matching index result")
+    primary = data.get("primaryData") or {}
+    price = _positive(primary.get("lastSalePrice") or primary.get("lastSale"), 100, 100000)
+    raw_date = str(primary.get("lastTradeTimestamp") or data.get("lastTradeTimestamp") or "")
+    match = re.search(r"[A-Za-z]{3,9}\s+\d{1,2},?\s+\d{4}", raw_date)
+    date = None
+    if match:
+        for fmt in ("%b %d, %Y", "%B %d, %Y"):
+            try:
+                date = dt.datetime.strptime(match.group(0), fmt).date()
+                break
+            except ValueError:
+                pass
+    now = dt.datetime.now(ZoneInfo("America/New_York")).date()
+    if not price or not date or not 0 <= (now-date).days <= 7:
+        raise ValueError("Nasdaq index result has no fresh dated quote")
+    return {"price":price,"date":date.isoformat(),"source":"Nasdaq · "+label}
+
+
+def fetch_google_index(name, label):
+    """Scrape a public index page conservatively; refuse stale or ambiguous pages."""
+    from html.parser import HTMLParser
+    url = ("https://www.google.com/finance/quote/.INX:INDEXSP"
+           if name == "SPX" else "https://www.google.com/finance/quote/.IXIC:INDEXNASDAQ")
+    html = _request(url, 3_000_000)
+    match = re.search(r'YMlKec\s+fxKbKc[^>]*>\s*([\d,]+\.\d+)\s*<', html)
+    if not match:
+        raise ValueError("Index price element not found")
+    price = _positive(match.group(1), 100, 100000)
+    class Text(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.items = []
+        def handle_data(self, part):
+            if part.strip():
+                self.items.append(part.strip())
+    parser = Text()
+    parser.feed(html)
+    text = " ".join(parser.items)
+    title = "S&P 500" if name == "SPX" else "Nasdaq Composite"
+    found = re.search(re.escape(title)+r"\s+([\d,]+\.\d+)\s+([A-Z][a-z]{2}\s+\d{1,2}),", text)
+    if not found or abs(float(found.group(1).replace(",", ""))-price)>0.5:
+        raise ValueError("Google index title/quote mismatch")
+    now = dt.datetime.now(ZoneInfo("America/New_York")).date()
+    for year in (now.year, now.year-1):
+        try:
+            date = dt.datetime.strptime(found.group(2)+", "+str(year),"%b %d, %Y").date()
+            if 0 <= (now-date).days <= 7:
+                return {"price":price,"date":date.isoformat(),"source":"Google Finance · "+label}
+        except ValueError:
+            pass
+    raise ValueError("Google index quote is stale")
+
+
+def fetch_nasdaq_composite_site():
+    """Secondary official Nasdaq Composite quote, never confuse with Nasdaq-100."""
+    from html.parser import HTMLParser
+    class Text(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.items = []
+        def handle_data(self, part):
+            if part.strip():
+                self.items.append(part.strip())
+    parser = Text()
+    parser.feed(_request("https://indexes.nasdaq.com/Index/Overview/COMP",3_000_000))
+    text = " ".join(parser.items)
+    match = re.search(r"DATA AS OF\s+(\d{1,2}/\d{1,2}/\d{4})\s+([\d,]+\.\d+)",text,re.I)
+    if not match:
+        raise ValueError("Nasdaq index overview missing quote")
+    date = _date(match.group(1))
+    now = dt.datetime.now(ZoneInfo("America/New_York")).date()
+    price = _positive(match.group(2),100,100000)
+    if not price or not date or not 0 <= (now-dt.date.fromisoformat(date)).days <= 7:
+        raise ValueError("Nasdaq overview index quote stale")
+    return {"price":price,"date":date,"source":"Nasdaq 指數官網 · NASDAQ Composite"}
+
+
 def fetch_fred_index(series, label):
     """FRED publishes daily close for exact SP500/NASDAQCOM series, not ETF proxies."""
     if series not in ("SP500", "NASDAQCOM"):
@@ -161,15 +245,22 @@ def fetch_public_indices():
     except Exception as error:
         errors.append(f"TPEX: {error}")
     for name, (yahoo, stooq, label) in US_INDICES.items():
-        fred_series = "SP500" if name == "SPX" else "NASDAQCOM"
-        try:
-            found[name] = fetch_fred_index(fred_series, label)
-        except Exception as fred_error:
+        candidates = [("Nasdaq API", lambda n=name, l=label:fetch_nasdaq_index("SPX" if n=="SPX" else "COMP",l))]
+        if name == "IXIC":
+            candidates.append(("Nasdaq 官網",fetch_nasdaq_composite_site))
+        candidates += [
+            ("Google Finance",lambda n=name,l=label:fetch_google_index(n,l)),
+            ("FRED",lambda n=name,l=label:fetch_fred_index("SP500" if n=="SPX" else "NASDAQCOM",l)),
+            ("Yahoo",lambda y=yahoo,l=label:fetch_yahoo_index(y,l)),
+            ("Stooq",lambda st=stooq,l=label:fetch_stooq_index(st,l)),
+        ]
+        failures = []
+        for provider, fn in candidates:
             try:
-                found[name] = fetch_yahoo_index(yahoo, label)
-            except Exception as yahoo_error:
-                try:
-                    found[name] = fetch_stooq_index(stooq, label)
-                except Exception as stooq_error:
-                    errors.append(f"{name}: FRED: {fred_error}; Yahoo: {yahoo_error}; Stooq: {stooq_error}")
+                found[name] = fn()
+                break
+            except Exception as exc:
+                failures.append(f"{provider}: {exc}")
+        if name not in found:
+            errors.append(name+": "+"; ".join(failures))
     return found, errors
