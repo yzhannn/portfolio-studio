@@ -132,6 +132,39 @@ def parse_stooq_csv(raw, code):
 
 
 
+
+def fetch_cnbc_spx():
+    """CNBC's public quote cache for the actual S&P 500 index (.SPX)."""
+    url = ("https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol"
+           "?symbols=.SPX&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json")
+    root = json.loads(_request(url, 500_000))
+    quotes = root.get("FormattedQuoteResult", {}).get("FormattedQuote", [])
+    if isinstance(quotes, dict):
+        quotes = [quotes]
+    for quote in quotes:
+        if not isinstance(quote, dict) or str(quote.get("symbol","")).upper() not in (".SPX","SPX"):
+            continue
+        price = _positive(quote.get("last"), 100, 100_000)
+        if not price:
+            continue
+        now = dt.datetime.now(ZoneInfo("America/New_York")).date()
+        date = None
+        for field in ("last_timedate","last_time","lastTradeTime","last_time_date","lastDate"):
+            value = str(quote.get(field) or "")
+            match = re.search(r"\d{4}-\d{2}-\d{2}|\d{1,2}/\d{1,2}/\d{4}",value)
+            if match:
+                date = _date(match.group(0))
+                if date:
+                    break
+        if date and not 0 <= (now-dt.date.fromisoformat(date)).days <= 7:
+            raise ValueError("CNBC index data stale")
+        # A missing source trading date is explicitly labeled as retrieval date,
+        # rather than misleadingly presenting it as an exchange closing date.
+        return {"price":price,"date":date or now.isoformat(),"dateKind":"provider" if date else "retrieved",
+                "source":"CNBC · S&P 500"+("（擷取日）" if not date else "")}
+    raise ValueError("CNBC did not provide a valid S&P 500 index record")
+
+
 def fetch_nasdaq_index(ticker, label):
     """Nasdaq public quote endpoint; requires a recent dated index value."""
     url = f"https://api.nasdaq.com/api/quote/{ticker}/info?assetclass=index"
@@ -246,6 +279,8 @@ def fetch_public_indices():
         errors.append(f"TPEX: {error}")
     for name, (yahoo, stooq, label) in US_INDICES.items():
         candidates = [("Nasdaq API", lambda n=name, l=label:fetch_nasdaq_index("SPX" if n=="SPX" else "COMP",l))]
+        if name == "SPX":
+            candidates.insert(0,("CNBC 公開指數",fetch_cnbc_spx))
         if name == "IXIC":
             candidates.append(("Nasdaq 官網",fetch_nasdaq_composite_site))
         candidates += [
