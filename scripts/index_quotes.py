@@ -131,6 +131,23 @@ def parse_stooq_csv(raw, code):
     return max(result, key=lambda v: v["date"])
 
 
+def fetch_fred_index(series, label):
+    """FRED publishes daily close for exact SP500/NASDAQCOM series, not ETF proxies."""
+    if series not in ("SP500", "NASDAQCOM"):
+        raise ValueError("Unsupported index series")
+    url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=" + series + "&cosd=2026-10-01"
+    data = _request(url, 2_000_000)
+    values = []
+    for row in csv.DictReader(io.StringIO(data)):
+        day = _date(row.get("DATE") or row.get("observation_date"))
+        price = _positive(row.get(series), 100, 100_000)
+        if day and price:
+            values.append({"price": price, "date": day, "source": "FRED · " + label + " 收盤"})
+    if not values:
+        raise ValueError("FRED has no valid close in returned CSV")
+    return max(values, key=lambda value: value["date"])
+
+
 def fetch_stooq_index(symbol, code):
     symbol = urllib.parse.quote(symbol, safe="")
     return parse_stooq_csv(_request(f"https://stooq.com/q/d/l/?s={symbol}&i=d&d1=20261001"), code)
@@ -144,11 +161,15 @@ def fetch_public_indices():
     except Exception as error:
         errors.append(f"TPEX: {error}")
     for name, (yahoo, stooq, label) in US_INDICES.items():
+        fred_series = "SP500" if name == "SPX" else "NASDAQCOM"
         try:
-            found[name] = fetch_yahoo_index(yahoo, label)
-        except Exception as first:
+            found[name] = fetch_fred_index(fred_series, label)
+        except Exception as fred_error:
             try:
-                found[name] = fetch_stooq_index(stooq, label)
-            except Exception as second:
-                errors.append(f"{name}: Yahoo: {first}; Stooq: {second}")
+                found[name] = fetch_yahoo_index(yahoo, label)
+            except Exception as yahoo_error:
+                try:
+                    found[name] = fetch_stooq_index(stooq, label)
+                except Exception as stooq_error:
+                    errors.append(f"{name}: FRED: {fred_error}; Yahoo: {yahoo_error}; Stooq: {stooq_error}")
     return found, errors
