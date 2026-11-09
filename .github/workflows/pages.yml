@@ -8,6 +8,8 @@ on:
     # GitHub-hosted scheduled executions can be delayed; refresh page for newest deployed snapshot.
     - cron: '20 8 * * 1-5'
     - cron: '20 10 * * 1-5'
+    # US trading session after-hours snapshot: ~06:30 Taipei (Tue-Sat).
+    - cron: '30 22 * * 1-5'
   workflow_dispatch:
 
 permissions:
@@ -29,7 +31,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Fetch TWSE and TPEx public daily closing quotes
+      - name: Fetch TWSE TPEx closes and Nasdaq delayed US quotes
         run: python scripts/update_quotes.py
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
