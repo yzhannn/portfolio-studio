@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""Fetch PUBLIC Taiwan market snapshots for GitHub Pages. No portfolio data is used.
+
+The script runs during GitHub Actions deployment. The generated data/quotes.json is
+served by GitHub Pages, avoiding browser CORS and separate serverless hosting.
+"""
+import datetime as dt
+import json
+import os
+from pathlib import Path
+import re
+import sys
+import time
+import urllib.error
+import urllib.request
+
+SOURCES = {
+    'TWSE': 'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL',
+    'TPEx': 'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes',
+    'TAIEX': 'https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX',
+}
+OUTPUT = Path(__file__).resolve().parent.parent / 'data' / 'quotes.json'
+
+
+def trading_date(raw):
+    raw = re.sub(r'[^0-9]', '', str(raw or ''))
+    if len(raw) == 7:
+        iso = f'{int(raw[:3]) + 1911:04d}-{raw[3:5]}-{raw[5:7]}'
+    elif len(raw) == 8:
+        iso = f'{raw[:4]}-{raw[4:6]}-{raw[6:8]}'
+    else:
+        return None
+    try:
+        dt.date.fromisoformat(iso)
+        return iso
+    except ValueError:
+        return None
+
+
+def valid_price(value):
+    value = str(value or '').strip().replace(',', '')
+    try:
+        n = float(value)
+    except (ValueError, TypeError):
+        return None
+    return n if 0 < n < 10000000 and n == n else None
+
+
+def load_json(url):
+    # Official feeds occasionally return temporary HTML errors or reject cloud IPs.
+    last_error = None
+    for attempt in range(3):
+        try:
+            request = urllib.request.Request(url, headers={
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (compatible; PortfolioStudioMarketSnapshot/1.0)',
+            })
+            with urllib.request.urlopen(request, timeout=25) as response:
+                if response.status != 200:
+                    raise ValueError(f'HTTP {response.status}')
+                raw = response.read(18 * 1024 * 1024 + 1)
+                if len(raw) > 18 * 1024 * 1024:
+                    raise ValueError('Response unexpectedly large')
+                rows = json.loads(raw.decode('utf-8-sig'))
+                if not isinstance(rows, list) or not rows:
+                    raise ValueError('Expected nonempty JSON array')
+                return rows
+        except (urllib.error.URLError, ValueError, TimeoutError, UnicodeError) as ex:
+            last_error = ex
+            if attempt < 2:
+                time.sleep(2 * (attempt + 1))
+    raise RuntimeError(str(last_error))
+
+
+def stock_prices(rows, source):
+    out = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        symbol = str(row.get('Code' if source == 'TWSE' else 'SecuritiesCompanyCode', '')).strip()
+        price = valid_price(row.get('ClosingPrice' if source == 'TWSE' else 'Close'))
+        day = trading_date(row.get('Date'))
+        if symbol and re.fullmatch(r'[0-9A-Z]{3,8}', symbol) and price and day:
+            prev = out.get(symbol)
+            if not prev or day >= prev['date']:
+                out[symbol] = {'price': price, 'date': day, 'source': source}
+    if len(out) < 100:
+        raise ValueError(f'Only {len(out)} valid {source} quotations; probable upstream schema change')
+    return out
+
+
+def taiex_index(rows):
+    for row in rows:
+        if not isinstance(row, dict) or row.get('指數') != '發行量加權股價指數':
+            continue
+        price, day = valid_price(row.get('收盤指數')), trading_date(row.get('日期'))
+        if price and day:
+            change = valid_price(row.get('漲跌點數'))
+            sign = -1 if str(row.get('漲跌', '')).strip() == '-' else 1
+            return {'price': price, 'date': day, 'change': change * sign if change else None, 'source': 'TWSE'}
+    raise ValueError('TAIEX index not found in TWSE response')
+
+
+def build_snapshot(fetcher=load_json, clock=None):
+    if clock is None:
+        clock = dt.datetime.now(dt.timezone.utc)
+    quotes, indices, errors, succeeded = {}, {}, [], []
+    for name, url in SOURCES.items():
+        try:
+            raw = fetcher(url)
+            if name == 'TAIEX':
+                indices['TAIEX'] = taiex_index(raw)
+            else:
+                # Never rely on the user's holdings list; these are publicly traded symbols.
+                result = stock_prices(raw, name)
+                for ticker, quote in result.items():
+                    old = quotes.get(ticker)
+                    if not old or quote['date'] >= old['date']:
+                        quotes[ticker] = quote
+            succeeded.append(name)
+            print(f'{name}: OK', file=sys.stderr)
+        except Exception as exc:
+            errors.append(f'{name}: {type(exc).__name__}: {exc}')
+            print(f'{name}: FAILED: {exc}', file=sys.stderr)
+    if not quotes:
+        raise RuntimeError('Both stock markets unavailable. Keep the last successfully published site; do not overwrite it with empty prices.')
+    return {
+        'schema': 1,
+        'asOf': clock.isoformat(timespec='seconds'),
+        'priceType': 'official-daily-close',
+        'isRealtime': False,
+        'quotes': quotes,
+        'indices': indices,
+        'sourcesSucceeded': succeeded,
+        'errors': errors,
+    }
+
+
+def main():
+    data = build_snapshot()
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    with OUTPUT.open('w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, separators=(',', ':'))
+    print(f'Wrote {OUTPUT}, {len(data["quotes"])} stock quotes, {len(data["indices"])} indices')
+
+
+if __name__ == '__main__':
+    main()
