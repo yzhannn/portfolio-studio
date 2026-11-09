@@ -13,6 +13,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from us_quotes import fetch_us_quotes
 
 SOURCES = {
     'TWSE': 'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL',
@@ -122,6 +123,9 @@ def build_snapshot(fetcher=load_json, clock=None):
         except Exception as exc:
             errors.append(f'{name}: {type(exc).__name__}: {exc}')
             print(f'{name}: FAILED: {exc}', file=sys.stderr)
+    us_quotes, us_errors, us_succeeded = fetch_us_quotes(clock)
+    errors.extend(us_errors)
+    succeeded.extend(us_succeeded)
     if not quotes:
         raise RuntimeError('Both stock markets unavailable. Keep the last successfully published site; do not overwrite it with empty prices.')
     return {
@@ -130,6 +134,7 @@ def build_snapshot(fetcher=load_json, clock=None):
         'priceType': 'official-daily-close',
         'isRealtime': False,
         'quotes': quotes,
+        'usQuotes': us_quotes,
         'indices': indices,
         'sourcesSucceeded': succeeded,
         'errors': errors,
@@ -141,7 +146,7 @@ def main():
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     with OUTPUT.open('w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False, separators=(',', ':'))
-    print(f'Wrote {OUTPUT}, {len(data["quotes"])} stock quotes, {len(data["indices"])} indices')
+    print(f'Wrote {OUTPUT}, {len(data["quotes"])} TW stock quotes, {len(data["usQuotes"])} US quotes, {len(data["indices"])} indices')
 
 
 if __name__ == '__main__':
