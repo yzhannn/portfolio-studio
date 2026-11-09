@@ -247,17 +247,27 @@ async function directPrices(){
  return {quotes,errors,indices:{},asOf:null,priceType:'official-daily-close',isRealtime:false};
 }
 async function publishedPrices(){
- const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),14000);
- try{
-  // Relative URL handles GitHub Pages' /portfolio-studio/ project subpath.
-  const url=new URL('./data/quotes.json',location.href);
-  url.searchParams.set('v',String(Date.now()));
-  const resp=await fetch(url.toString(),{signal:ctrl.signal,cache:'no-store'});
-  if(!resp.ok)throw Error('GitHub Pages 行情檔 HTTP '+resp.status);
-  const data=await resp.json();
-  if(!data||!data.quotes||!Object.keys(data.quotes).length||data.priceType!=='official-daily-close')throw Error('行情 JSON 缺少有效收盤價');
-  return data;
- }finally{clearTimeout(timer)}
+ // GitHub source copy is durable even if branch-based Pages deployment replaces an Actions artifact.
+ const sources=[
+  ['GitHub 公開行情快取','https://raw.githubusercontent.com/yzhannn/portfolio-studio/main/data/quotes.json'],
+  ['GitHub Pages 行情檔',new URL('./data/quotes.json',location.href).toString()]
+ ];
+ const errors=[];
+ for(const [label,endpoint] of sources){
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),14000);
+  try{
+   const url=new URL(endpoint);url.searchParams.set('v',String(Date.now()));
+   const response=await fetch(url.toString(),{signal:ctrl.signal,cache:'no-store'});
+   if(!response.ok)throw Error('HTTP '+response.status);
+   const data=await response.json();
+   if(!data||!data.quotes||!Object.keys(data.quotes).length||data.priceType!=='official-daily-close')throw Error('台股行情檔格式無效');
+   if(!data.usQuotes||!Object.keys(data.usQuotes).length)throw Error('尚未包含美股報價');
+   data.cacheSource=label;
+   return data;
+  }catch(error){errors.push(label+'：'+(error.message||error))}
+  finally{clearTimeout(timer)}
+ }
+ throw Error('找不到完整台美股行情：'+errors.join('；')+'。請檢查 GitHub Actions 的行情更新流程');
 }
 async function updateOfficialPrices(){
  if(quoteBusy)return;
@@ -265,8 +275,8 @@ async function updateOfficialPrices(){
  const btn=$('#quote-refresh');if(btn){btn.disabled=true;btn.textContent='讀取行情中…'}
  quoteMessage('正在讀取台股官方收盤價與 Nasdaq 美股延遲參考價；非即時行情。');
  try{
-  let data,from='GitHub Pages 每日市場行情';
-  try{data=await publishedPrices()}
+  let data,from='GitHub 市場行情快取';
+  try{data=await publishedPrices();from=data.cacheSource||from}
   catch(err){
    from='瀏覽器官方 API 備援';data=await directPrices();
    data.errors=[`已發布行情檔尚不可用：${err.message}`,...(data.errors||[])];
