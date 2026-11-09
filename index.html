@@ -27,14 +27,14 @@
 .watch-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:auto;padding-top:8px;border-top:1px solid var(--line)}
 @media(max-width:900px){.watch-grid{grid-template-columns:1fr}}
 @media(max-width:420px){.watch-fields{grid-template-columns:1fr}.metric-return{font-size:17px}}
-.quote-info{display:none;border:1px solid #d7e5fa;background:#f1f6ff;color:#345386;border-radius:12px;padding:12px 15px;font-size:12px;line-height:1.7;margin-bottom:17px}.quote-info.ok{background:#edf9f4;color:#12684d;border-color:#cdebdc}.quote-info.warn{background:#fff9ee;color:#925b19;border-color:#f0dfb8}
+.fx-status{font-size:11px;color:var(--muted);line-height:1.6;margin:-7px 0 15px}.fx-status:empty{display:none}.quote-info{display:none;border:1px solid #d7e5fa;background:#f1f6ff;color:#345386;border-radius:12px;padding:12px 15px;font-size:12px;line-height:1.7;margin-bottom:17px}.quote-info.ok{background:#edf9f4;color:#12684d;border-color:#cdebdc}.quote-info.warn{background:#fff9ee;color:#925b19;border-color:#f0dfb8}
 </style>
 </head>
 <body>
 <div class="shell">
  <aside class="sidebar"><div class="brand">◈ Portfolio Studio<small>Personal Investment Desk</small></div><div><div class="side-label">Portfolio</div><div id="side-nav"></div></div><div class="side-bottom"><strong>資料儲存方式</strong>此版資料保存在本瀏覽器。若要換電腦或分享更新紀錄，請先匯出 JSON 備份。V3 使用 GitHub Actions 定時更新官方台股每日收盤行情（非盤中即時），尚未連接證券商或雲端同步。若將網站放上外網，資料仍只會儲存在目前裝置／瀏覽器；沒有帳號登入保護。</div></aside>
  <main class="main"><div class="top"><div><div class="eyebrow">My Investment Workspace</div><h1 id="page-title">五帳戶投資總覽</h1><p id="page-desc">現金・持股配置・個股未實現損益・台美股行情</p></div><div class="top-actions"><button class="btn quote-refresh" id="quote-refresh" title="同步已發布的台股官方收盤價與美股 Nasdaq 延遲參考價（非即時報價）">↻ 同步台股／美股行情</button><button class="btn" id="import-btn">匯入備份</button><button class="btn" id="export-btn">匯出備份</button><button class="btn ghost" data-modal="names">管理帳戶名稱</button><button class="btn ghost" data-modal="cash">調整現金</button><button class="btn ghost" data-modal="position">新增庫存</button><button class="btn ghost" data-modal="settlement">待交割入帳</button><button class="btn primary" data-modal="trade">＋ 登記交易</button></div></div>
- <div class="mobile-tabs" id="mobile-nav"></div><div class="notice" id="data-notice"></div><div class="quote-info" id="quote-info" role="status" aria-live="polite"></div><div id="dashboard"></div>
+ <div class="mobile-tabs" id="mobile-nav"></div><div class="notice" id="data-notice"></div><div id="fx-status" class="fx-status" role="status" aria-live="polite"></div><div class="quote-info" id="quote-info" role="status" aria-live="polite"></div><div id="dashboard"></div>
  <div class="footnote">注意：投資市值、資產比例及損益需使用市價。未取得報價的標的暫以「投入成本」代替市值，因此相關比例僅為暫估。交易費用與稅額可於登記交易時輸入。網站可在外網主機開啟，但此版本資料只保存在各自的瀏覽器，不會自動跨裝置同步；請勿在共用裝置輸入私密財務資訊。此工具僅作記錄與風險觀察，不構成投資建議。</div>
  </main>
 </div>
@@ -53,7 +53,7 @@ const starting={version:2,fx:null,accounts:[
 let state;try{state=JSON.parse(localStorage.getItem(STORAGE))||structuredClone(starting)}catch(e){state=structuredClone(starting)}
 for(const account of (state.accounts||[]))delete account.limit;
 if(!Array.isArray(state.watchlist))state.watchlist=[];
-let selection='all';let publicIndexQuotes={};const $=sel=>document.querySelector(sel);
+let selection='all';let publicIndexQuotes={};let fxBusy=false;let fxError='';const $=sel=>document.querySelector(sel);
 function copy(o){return JSON.parse(JSON.stringify(o))}
 function persist(){try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){alert('瀏覽器儲存失敗，請立即使用匯出備份。')}}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -156,28 +156,64 @@ function marketPanel(){return `<div class="card"><div class="card-header"><h2>�
  const level=live?`<div class="market-note" style="color:var(--blue);font-weight:700">最近收盤：${fmt(q.price,2)}　${esc(q.date||'')} · ${esc(q.source||'官方')}</div>`:'';
  return `<div class="market-row"><div><div class="market-name">${esc(m.name)}</div>${level}<div class="market-note">支撐：${m.support?esc(m.support):'未設定'}　·　壓力：${m.resistance?esc(m.resistance):'未設定'}${m.note?'<div style="margin-top:5px">'+esc(m.note)+'</div>':''}</div></div><button class="btn small" data-market="${esc(m.id)}">編輯</button></div>`;
  }).join('')}</div></div>`}
-function detailsPanel(as){
- const count=as.reduce((s,a)=>s+a.holdings.length,0);
- const last=(state.transactions||[]).filter(t=>as.some(a=>a.id===t.account)).slice(-3).reverse();
- const realized=as.reduce((s,a)=>s+derived(a).realized*(a.currency==='USD'&&as.length>1?(state.fx||0):1),0);
- const pending=as.reduce((s,a)=>s+derived(a).pending*(a.currency==='USD'&&as.length>1?(state.fx||0):1),0);
- const cur=as.length===1?as[0].currency:'TWD';
- return `<div class="card"><div class="card-header"><h2>帳戶與紀錄</h2><span class="pill">${as.length} 個帳戶</span></div><div class="details-table">
- <div class="line"><span class="muted">已登錄持股標的</span><span class="val">${count} 筆</span></div>
- <div class="line"><span class="muted">已實現損益（本網站交易）</span><span class="val ${realized>0?'positive':realized<0?'negative':''}">${money(realized,cur)}</span></div>
- <div class="line"><span class="muted">待交割應收款</span><span class="val">${money(pending,cur)}</span></div>
- <div class="line"><span class="muted">近期網站交易</span><span class="val">${last.length} / 共 ${state.transactions.filter(t=>as.some(a=>a.id===t.account)).length} 筆</span></div>
- <div class="line"><span class="muted">最新紀錄</span><span class="val">${last.length?esc(last[0].date)+' · '+esc(last[0].symbol):'尚無買賣紀錄'}</span></div>
- <div class="line"><span class="muted">行情更新方式</span><span class="val">台股官方盤後收盤價／手動輸入</span></div>
- <div class="line"><span class="muted">資料儲存</span><span class="val">目前瀏覽器</span></div>
- <div class="line"><span class="muted">美股匯率</span><span class="val">${state.fx?fmt(state.fx,4)+' TWD / USD':'未設定'} <button class="btn small" data-modal="fx" style="margin-left:7px">設定</button></span></div></div></div>`;
-}
 function nav(){const items=[{id:'all',label:'資產總覽',meta:'Overview'},...state.accounts.map(a=>({id:a.id,label:`${accountTitle(a)} · ${a.broker}`,meta:a.currency}))];$('#side-nav').innerHTML=items.map(i=>`<button class="nav-btn ${selection===i.id?'selected':''}" data-tab="${esc(i.id)}"><span>${esc(i.label)}</span><span class="meta">${esc(i.meta)}</span></button>`).join('');$('#mobile-nav').innerHTML=items.map(i=>`<button class="tab ${selection===i.id?'active':''}" data-tab="${esc(i.id)}">${i.id==='all'?'資產總覽':`${esc(accountTitle(getA(i.id)))}`}</button>`).join('')}
-function render(){nav();const all=selection==='all';const a=all?null:getA(selection);const as=all?state.accounts:[a];const d=all?consolidated():({...derived(a),cash:a.cash});const currency=all?'TWD':a.currency;$('#page-title').textContent=all?'投資資產總覽':`${accountTitle(a)} · ${a.broker}`;$('#page-desc').textContent=all?'五帳戶分開管理，首頁合併檢視台股與美股（美股非零資產需設定匯率）':`${a.currency==='TWD'?'台股':'美股'} · 獨立現金、庫存及損益管理`;
- $('#data-notice').textContent=d.excluded?'尚未設定 USD/TWD 匯率，首頁合計不包含美股資產。請先設定匯率。':(d.missing?`目前有 ${d.missing} 檔持股尚未取得市價，資產總額與圓餅圖暫以原始成本補足，僅供檢視投入配置；不能當作即時資產比例。請點選「同步台股／美股行情」更新市價；價格欄無法手動修改。`:'已登錄持股皆有參考市價，但報價可能是先前交易日的收盤價或手動價格。請查看每檔行情日期；仍可能有尚未提供庫存的帳戶。');
+
+function validFx(raw,label){
+ const rate=Number(raw?.usd?.twd??raw?.fx?.rate);
+ const date=String(raw?.date??raw?.fx?.date??'');
+ if(!Number.isFinite(rate)||rate<=10||rate>=100||!/^\d{4}-\d{2}-\d{2}$/.test(date))throw Error('匯率資料格式不正確');
+ return {rate,date,source:raw?.fx?.source||label};
+}
+async function fetchDailyFx(){
+ // Free daily public reference rates (USD base). Never use an order-execution FX rate.
+ const sources=[
+  ['Currency API (jsDelivr)','https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json'],
+  ['Currency API (備援)','https://latest.currency-api.pages.dev/v1/currencies/usd.min.json'],
+  ['GitHub 公開行情快取','https://raw.githubusercontent.com/yzhannn/portfolio-studio/main/data/quotes.json']
+ ];
+ const errors=[];
+ for(const [label,endpoint] of sources){
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8500);
+  try{
+   const url=new URL(endpoint);url.searchParams.set('fxv',String(Date.now()));
+   const response=await fetch(url.toString(),{signal:ctrl.signal,cache:'no-store'});
+   if(!response.ok)throw Error('HTTP '+response.status);
+   return validFx(await response.json(),label);
+  }catch(e){errors.push(label+': '+(e.message||String(e)))}
+  finally{clearTimeout(timer)}
+ }
+ throw Error(errors.join('；'));
+}
+async function refreshDailyFx(){
+ if(fxBusy)return;
+ fxBusy=true;fxError='';
+ try{
+  const current=await fetchDailyFx();
+  if(!(Number(state.fx)>0)||!state.fxDate||current.date>=state.fxDate){
+   if(state.fx!==current.rate||state.fxDate!==current.date||state.fxSource!==current.source){
+    state.fx=current.rate;state.fxDate=current.date;state.fxSource=current.source;persist();
+   }
+  }
+ }catch(e){fxError='匯率來源暫時無法連線';}
+ finally{fxBusy=false;render();}
+}
+function displayFxStatus(all){
+ const node=$('#fx-status');if(!node)return;
+ if(!all){node.textContent='';return}
+ if(Number(state.fx)>0){
+  const asof=state.fxDate?' · '+state.fxDate:' · 日期未記錄';
+  const from=state.fxSource?' · '+state.fxSource:' · 舊備份匯率';
+  node.textContent='換算參考：1 USD ≈ NT$'+fmt(state.fx,4)+asof+from+'（非券商實際換匯價）'+(fxError?' · '+fxError+'，暫用先前值':'');
+ }else{
+  node.textContent=fxBusy?'正在自動載入 USD/TWD 每日參考匯率…':'暫時無法取得 USD/TWD 匯率，美股尚未併入台幣總覽。';
+ }
+}
+
+function render(){nav();const all=selection==='all';displayFxStatus(all);const a=all?null:getA(selection);const as=all?state.accounts:[a];const d=all?consolidated():({...derived(a),cash:a.cash});const currency=all?'TWD':a.currency;$('#page-title').textContent=all?'投資資產總覽':`${accountTitle(a)} · ${a.broker}`;$('#page-desc').textContent=all?'整合台股與美股資產，以自動更新的美元兌台幣參考匯率折算':`${a.currency==='TWD'?'台股':'美股'} · 獨立現金、庫存及損益管理`;
+ $('#data-notice').textContent=d.excluded?'USD/TWD 參考匯率尚未取得，台幣總覽暫不包含美股資產；系統會自動嘗試載入。':(d.missing?`目前有 ${d.missing} 檔持股尚未取得市價，資產總額與圓餅圖暫以原始成本補足，僅供檢視投入配置；不能當作即時資產比例。請點選「同步台股／美股行情」更新市價；價格欄無法手動修改。`:'已登錄持股皆有參考市價，但報價可能是先前交易日的收盤價或手動價格。請查看每檔行情日期；仍可能有尚未提供庫存的帳戶。');
 
  let banner=all?'':`<div class="account-banner"><div><h2>${esc(accountTitle(a))} · ${esc(a.broker)}</h2><p>${a.currency==='TWD'?'台股':'美股'} · 獨立帳戶資產與績效 <button type="button" class="btn small" style="margin-left:8px" data-modal="names">更改名稱</button></p></div></div>`;
- $('#dashboard').innerHTML=banner+figures(d,currency,all)+(all?`<div class="cols">${donutBlock(d,currency)}${marketPanel()}</div>`:`<div class="cols single">${donutBlock(d,currency)}</div>`)+(all?watchlistPanel():'')+journalPanel(as)+(all?`<div class="footer-panels solo">${detailsPanel(as)}</div>`:'');
+ $('#dashboard').innerHTML=banner+figures(d,currency,all)+(all?`<div class="cols">${donutBlock(d,currency)}${marketPanel()}</div>`:`<div class="cols single">${donutBlock(d,currency)}</div>`)+(all?watchlistPanel():'')+journalPanel(as);
 }
 function modal(title,intro,body,actions){$('#modal-content').innerHTML=`<h2>${title}</h2><p class="modal-intro">${intro}</p>${body}<div class="modal-actions"><button type="button" class="btn" id="modal-cancel">取消</button>${actions||'<button class="btn primary" form="modal-form" type="submit">儲存</button>'}</div>`;$('#overlay').classList.add('open');$('#overlay').setAttribute('aria-hidden','false');$('#modal-cancel').onclick=closeModal;}
 function closeModal(){$('#overlay').classList.remove('open');$('#overlay').setAttribute('aria-hidden','true');}
@@ -248,7 +284,6 @@ function modalSettlement(){
  });
 }
 function modalCash(){modal('調整可用現金','用來同步券商帳戶的可用現金。直接設定最新的帳戶可用現金餘額。',`<form id="modal-form"><div class="form-grid"><div class="field full"><label>帳戶</label><select name="account" id="cash-account">${accountOpts()}</select></div><div class="field full"><label>最新可用現金</label><input name="cash" id="cash-value" type="number" step="any" min="0" required/></div><div class="field full"><label>更新備註（選填）</label><input name="note" placeholder="例如 入金、出金、與券商對帳"/></div></div></form>`);let select=$('#cash-account'),cash=$('#cash-value');cash.value=getA(select.value).cash;select.onchange=()=>cash.value=getA(select.value).cash;$('#modal-form').onsubmit=e=>{e.preventDefault();let f=new FormData(e.currentTarget),a=getA(f.get('account')),newCash=Number(f.get('cash'));if(!Number.isFinite(newCash)||newCash<0){alert('請輸入有效的可用現金。');return}state.cashAdjustments.push({date:new Date().toLocaleDateString('sv-SE'),account:a.id,oldCash:a.cash,newCash,note:String(f.get('note')||'')});a.cash=newCash;persist();closeModal();render()}}
-function modalFx(){modal('美元匯率設定','用於合併五帳戶的台幣資產，不會改動美股帳戶的美元原始數據。',`<form id="modal-form"><div class="form-grid"><div class="field full"><label>1 USD = ? TWD</label><input name="fx" type="number" min="0.0001" step="any" required value="${state.fx||''}" placeholder="手動填入美元兌台幣匯率"/></div></div></form>`);$('#modal-form').onsubmit=e=>{e.preventDefault();let x=num(new FormData(e.currentTarget).get('fx'));if(x<=0)return;state.fx=x;persist();closeModal();render()}}
 function modalMarket(id){let m=state.markets.find(x=>x.id===id);if(!m)return;modal('設定大盤觀察位置',`${esc(m.name)}：可以記錄你的支撐、壓力以及策略看法；目前不會主動監測或通知。`,`<form id="modal-form"><div class="form-grid"><div class="field"><label>支撐位置</label><input name="support" value="${esc(m.support)}" placeholder="例如 重要均線或區間"/></div><div class="field"><label>壓力位置</label><input name="resistance" value="${esc(m.resistance)}" placeholder="例如 前高"/></div><div class="field full"><label>我的觀察／備註</label><textarea name="note" placeholder="觀察條件、成交量、風險事件...">${esc(m.note)}</textarea></div></div></form>`);$('#modal-form').onsubmit=e=>{e.preventDefault();let f=new FormData(e.currentTarget);m.support=String(f.get('support')||'');m.resistance=String(f.get('resistance')||'');m.note=String(f.get('note')||'');persist();closeModal();render()}}
 
 function modalStrategy(id,symbol){
@@ -304,11 +339,11 @@ function modalWatch(key=null){
 }
 
 function validateImport(s){if(!s||!Array.isArray(s.accounts)||s.accounts.length!==5||!Array.isArray(s.transactions))throw Error('資料不是此 Dashboard 的備份格式。');for(let a of s.accounts){if(!['A','B','C','D','E'].includes(a.id)||!Array.isArray(a.holdings)||!Number.isFinite(Number(a.cash)))throw Error('帳戶資料不完整。');for(let h of a.holdings){if(!h.symbol||num(h.qty)<0||num(h.avg)<0)throw Error('持股資料格式錯誤。')}}if(!Array.isArray(s.markets))s.markets=copy(starting.markets);if(!Array.isArray(s.cashAdjustments))s.cashAdjustments=[];if(!Array.isArray(s.settlements))s.settlements=[];if(!Array.isArray(s.watchlist))s.watchlist=[];for(let a of s.accounts){if(!Number.isFinite(num(a.pending))||num(a.pending)<0)throw Error('待交割金額格式錯誤。');if(a.label!==undefined&&(typeof a.label!=='string'||a.label.length>60))throw Error('帳戶名稱格式不正確。');if(a.broker!==undefined&&(typeof a.broker!=='string'||a.broker.length>60))throw Error('券商名稱格式不正確。')}}
-document.addEventListener('click',e=>{const tab=e.target.closest('[data-tab]');if(tab){selection=tab.dataset.tab;render();window.scrollTo(0,0);return}const mo=e.target.closest('[data-modal]');if(mo){if(mo.dataset.modal==='names')modalNames();if(mo.dataset.modal==='trade')modalTrade();if(mo.dataset.modal==='position')modalPosition();if(mo.dataset.modal==='cash')modalCash();if(mo.dataset.modal==='fx')modalFx();if(mo.dataset.modal==='settlement')modalSettlement();return}const addWatch=e.target.closest('[data-watch-add]');if(addWatch){modalWatch();return}const editWatch=e.target.closest('[data-watch-edit]');if(editWatch){modalWatch(editWatch.dataset.watchEdit);return}const delWatch=e.target.closest('[data-watch-delete]');if(delWatch){const key=delWatch.dataset.watchDelete;const item=(state.watchlist||[]).find(w=>w.market+':'+w.symbol===key);if(item&&confirm('確定移除 '+item.symbol+'？只會刪除觀察清單的這筆資料，不會影響持股。')){state.watchlist=state.watchlist.filter(w=>w!==item);persist();render()}return}const mr=e.target.closest('[data-market]');if(mr){modalMarket(mr.dataset.market);return}const pos=e.target.closest('[data-position]');if(pos){const [id,symbol]=pos.dataset.position.split('|');modalPosition(id,symbol);return}const st=e.target.closest('[data-strategy]');if(st){const [id,symbol]=st.dataset.strategy.split('|');modalStrategy(id,symbol);return}if(e.target===$('#overlay'))closeModal();});
+document.addEventListener('click',e=>{const tab=e.target.closest('[data-tab]');if(tab){selection=tab.dataset.tab;render();window.scrollTo(0,0);return}const mo=e.target.closest('[data-modal]');if(mo){if(mo.dataset.modal==='names')modalNames();if(mo.dataset.modal==='trade')modalTrade();if(mo.dataset.modal==='position')modalPosition();if(mo.dataset.modal==='cash')modalCash();if(mo.dataset.modal==='settlement')modalSettlement();return}const addWatch=e.target.closest('[data-watch-add]');if(addWatch){modalWatch();return}const editWatch=e.target.closest('[data-watch-edit]');if(editWatch){modalWatch(editWatch.dataset.watchEdit);return}const delWatch=e.target.closest('[data-watch-delete]');if(delWatch){const key=delWatch.dataset.watchDelete;const item=(state.watchlist||[]).find(w=>w.market+':'+w.symbol===key);if(item&&confirm('確定移除 '+item.symbol+'？只會刪除觀察清單的這筆資料，不會影響持股。')){state.watchlist=state.watchlist.filter(w=>w!==item);persist();render()}return}const mr=e.target.closest('[data-market]');if(mr){modalMarket(mr.dataset.market);return}const pos=e.target.closest('[data-position]');if(pos){const [id,symbol]=pos.dataset.position.split('|');modalPosition(id,symbol);return}const st=e.target.closest('[data-strategy]');if(st){const [id,symbol]=st.dataset.strategy.split('|');modalStrategy(id,symbol);return}if(e.target===$('#overlay'))closeModal();});
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 $('#export-btn').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`portfolio_backup_${new Date().toLocaleDateString('sv-SE')}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),5000)};
-$('#import-btn').onclick=()=>$('#file-in').click();$('#file-in').onchange=async e=>{let file=e.target.files?.[0];if(!file)return;try{let s=JSON.parse(await file.text());validateImport(s);if(confirm('匯入將取代目前此瀏覽器的資料。建議先匯出備份。確定繼續嗎？')){for(const account of s.accounts)delete account.limit;state=s;persist();selection='all';render();}}catch(err){alert('無法匯入：'+err.message)}e.target.value=''};
+$('#import-btn').onclick=()=>$('#file-in').click();$('#file-in').onchange=async e=>{let file=e.target.files?.[0];if(!file)return;try{let s=JSON.parse(await file.text());validateImport(s);if(confirm('匯入將取代目前此瀏覽器的資料。建議先匯出備份。確定繼續嗎？')){for(const account of s.accounts)delete account.limit;state=s;persist();selection='all';render();void refreshDailyFx();}}catch(err){alert('無法匯入：'+err.message)}e.target.value=''};
 
 // GitHub Pages hosts public prices as same-origin static data (no portfolio data).
 // The GitHub Actions workflow fetches official close prices on trading weekdays.
@@ -394,6 +429,7 @@ async function updateOfficialPrices(){
   }
   const all=data.quotes||{},usQuotes=data.usQuotes||{};let changed=0,changedTW=0,changedUS=0,skipped=0,unfound=[];
   publicIndexQuotes=data.indices||{};
+  if(data.fx){try{const q=validFx(data,'GitHub 市場行情快取');if(!state.fxDate||q.date>=state.fxDate){state.fx=q.rate;state.fxDate=q.date;state.fxSource=q.source;persist()}}catch(e){/* keep last valid FX */}}
   const tw=state.accounts.filter(a=>a.currency==='TWD').flatMap(a=>a.holdings.filter(h=>h.qty>0));
   for(const h of tw){
    const q=all[String(h.symbol||'').trim()];
@@ -443,7 +479,8 @@ async function updateOfficialPrices(){
 $('#quote-refresh').onclick=()=>updateOfficialPrices();
 
 render();
-// 市價只在使用者主動按下同步按鈕時更新，開頁與匯入備份不自動改價。
+void refreshDailyFx(); // 匯率與股價更新分開：開頁自動更新匯率，股價仍須按同步按鈕。
+// 市價只在使用者主動按下同步按鈕時更新，開頁與匯入備份不自動改價.
 })();
 </script>
 </body></html>
