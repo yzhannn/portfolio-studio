@@ -14,6 +14,7 @@ import time
 import urllib.error
 import urllib.request
 from us_quotes import fetch_us_quotes
+from index_quotes import fetch_public_indices
 
 SOURCES = {
     'TWSE': 'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL',
@@ -171,6 +172,36 @@ def build_snapshot(fetcher=load_json, clock=None, fx_fetcher=fetch_daily_fx):
         fx = None
         errors.append(f'USD/TWD FX: {type(exc).__name__}: {exc}')
         print(f'USD/TWD FX: FAILED: {exc}', file=sys.stderr)
+    updated_indices, index_errors = fetch_public_indices()
+    for name, quote in updated_indices.items():
+        existing = indices.get(name)
+        if not existing or quote["date"] >= existing.get("date", ""):
+            indices[name] = quote
+        succeeded.append(name)
+        print(f'{name} index: OK ({quote["price"]}, {quote["date"]}, {quote["source"]})', file=sys.stderr)
+    for item in index_errors:
+        errors.append('Index ' + item)
+        print('Index FAILED: ' + item, file=sys.stderr)
+
+    # When an upstream index API is blocked, retain the last fetched quote
+    # along with its original source and date, never substitute another index.
+    if OUTPUT.exists():
+        try:
+            with OUTPUT.open('r', encoding='utf-8') as previous_file:
+                previous = json.load(previous_file)
+            for name, quote in (previous.get('indices') or {}).items():
+                if name not in ('TAIEX', 'TPEX', 'SPX', 'IXIC'):
+                    continue
+                if not isinstance(quote, dict) or not valid_price(quote.get('price')):
+                    continue
+                original_date = str(quote.get('date') or '')
+                if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', original_date):
+                    continue
+                if not indices.get(name) or original_date > indices[name].get('date', ''):
+                    indices[name] = quote
+        except Exception as exc:
+            errors.append(f'Prior index cache: {type(exc).__name__}: {exc}')
+
     if not quotes:
         raise RuntimeError('Both stock markets unavailable. Keep the last successfully published site; do not overwrite it with empty prices.')
     return {
