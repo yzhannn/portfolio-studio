@@ -102,7 +102,43 @@ def taiex_index(rows):
     raise ValueError('TAIEX index not found in TWSE response')
 
 
-def build_snapshot(fetcher=load_json, clock=None):
+
+FX_ENDPOINTS = [
+    'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json',
+    'https://latest.currency-api.pages.dev/v1/currencies/usd.min.json',
+]
+
+
+def fetch_daily_fx():
+    """Public daily USD/TWD indicative FX quote, no API key or private data."""
+    issues = []
+    for endpoint in FX_ENDPOINTS:
+        try:
+            request = urllib.request.Request(endpoint, headers={
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (PortfolioStudio-PublicMarketSnapshot/1.0)',
+            })
+            with urllib.request.urlopen(request, timeout=12) as response:
+                if response.status != 200:
+                    raise ValueError(f'HTTP {response.status}')
+                raw = response.read(256 * 1024 + 1)
+                if len(raw) > 256 * 1024:
+                    raise ValueError('FX response exceeds size limit')
+                data = json.loads(raw.decode('utf-8-sig'))
+            rate = float(data['usd']['twd'])
+            date = str(data['date'])
+            dt.date.fromisoformat(date)
+            if not 10 < rate < 100:
+                raise ValueError('USD/TWD FX rate outside plausible range')
+            return {
+                'base': 'USD', 'quote': 'TWD', 'rate': rate,
+                'date': date, 'source': 'Currency API (每日參考匯率)',
+            }
+        except Exception as exc:
+            issues.append(f'{type(exc).__name__}: {exc}')
+    raise RuntimeError('; '.join(issues))
+
+def build_snapshot(fetcher=load_json, clock=None, fx_fetcher=fetch_daily_fx):
     if clock is None:
         clock = dt.datetime.now(dt.timezone.utc)
     quotes, indices, errors, succeeded = {}, {}, [], []
@@ -127,6 +163,14 @@ def build_snapshot(fetcher=load_json, clock=None):
     print(f'US quote coverage check: AAOI={us_quotes.get("AAOI", "MISSING")}', file=sys.stderr)
     errors.extend(us_errors)
     succeeded.extend(us_succeeded)
+    try:
+        fx = fx_fetcher()
+        succeeded.append('USD/TWD')
+        print(f'USD/TWD FX: OK ({fx["rate"]}, {fx["date"]})', file=sys.stderr)
+    except Exception as exc:
+        fx = None
+        errors.append(f'USD/TWD FX: {type(exc).__name__}: {exc}')
+        print(f'USD/TWD FX: FAILED: {exc}', file=sys.stderr)
     if not quotes:
         raise RuntimeError('Both stock markets unavailable. Keep the last successfully published site; do not overwrite it with empty prices.')
     return {
@@ -137,6 +181,7 @@ def build_snapshot(fetcher=load_json, clock=None):
         'quotes': quotes,
         'usQuotes': us_quotes,
         'indices': indices,
+        'fx': fx,
         'sourcesSucceeded': succeeded,
         'errors': errors,
     }
@@ -147,7 +192,7 @@ def main():
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     with OUTPUT.open('w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False, separators=(',', ':'))
-    print(f'Wrote {OUTPUT}, {len(data["quotes"])} TW stock quotes, {len(data["usQuotes"])} US quotes, {len(data["indices"])} indices')
+    print(f'Wrote {OUTPUT}, {len(data["quotes"])} TW stock quotes, {len(data["usQuotes"])} US quotes, {len(data["indices"])} indices, FX: {data["fx"]["rate"] if data["fx"] else "unavailable"}')
 
 
 if __name__ == '__main__':
