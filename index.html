@@ -27,7 +27,7 @@
 .watch-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:auto;padding-top:8px;border-top:1px solid var(--line)}
 @media(max-width:900px){.watch-grid{grid-template-columns:1fr}}
 @media(max-width:420px){.watch-fields{grid-template-columns:1fr}.metric-return{font-size:17px}}
-.fx-status{font-size:11px;color:var(--muted);line-height:1.6;margin:-7px 0 15px}.fx-status:empty{display:none}.account-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.index-value{font-size:20px;line-height:1.2;font-weight:850;letter-spacing:-.4px;color:var(--ink);margin:8px 0 4px;font-variant-numeric:tabular-nums}.index-asof{color:var(--muted);font-size:10px;line-height:1.5}.acct-stock-list{padding:7px 18px 12px;max-height:455px;overflow:auto}.acct-stock-row{display:flex;justify-content:space-between;gap:12px;padding:12px 3px;border-bottom:1px solid var(--line)}.acct-stock-row:last-child{border-bottom:0}.acct-symbol{font-size:14px;font-weight:800}.acct-stock-meta{font-size:11px;color:var(--muted);line-height:1.65;margin-top:3px}.acct-price{font-size:13px;font-weight:750;color:var(--ink);margin-top:4px}.acct-stock-pnl{text-align:right;flex-shrink:0}.acct-stock-pnl .pnl-percent{font-size:20px;margin-top:0}.acct-stock-pnl .pnl-amount{font-size:12px;margin-top:5px}.acct-stock-tools{display:flex;gap:5px;justify-content:flex-end;margin-top:7px}@media(max-width:1200px){.account-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:420px){.account-metrics{grid-template-columns:1fr 1fr}.acct-stock-meta{font-size:10px}.acct-stock-pnl .pnl-percent{font-size:17px}}.quote-info{display:none;border:1px solid #d7e5fa;background:#f1f6ff;color:#345386;border-radius:12px;padding:12px 15px;font-size:12px;line-height:1.7;margin-bottom:17px}.quote-info.ok{background:#edf9f4;color:#12684d;border-color:#cdebdc}.quote-info.warn{background:#fff9ee;color:#925b19;border-color:#f0dfb8}
+.fx-status{font-size:11px;color:var(--muted);line-height:1.6;margin:-7px 0 15px}.fx-status:empty{display:none}.account-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.index-value{font-size:20px;line-height:1.2;font-weight:850;letter-spacing:-.4px;color:var(--ink);margin:8px 0 4px;font-variant-numeric:tabular-nums}.index-asof{color:var(--muted);font-size:10px;line-height:1.5}.acct-stock-list{padding:7px 18px 12px;max-height:455px;overflow:auto}.acct-stock-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(140px,.9fr);align-items:start;gap:14px;padding:14px 3px;border-bottom:1px solid var(--line)}.acct-stock-main{min-width:0}.acct-stock-name{font-weight:500;font-size:11px;color:var(--muted);margin-left:4px}.acct-price-box{margin-top:11px;padding:10px 12px;background:var(--surface2);border:1px solid var(--line);border-radius:10px}.acct-stock-label{font-size:11px;color:var(--muted);font-weight:600}.acct-stock-pnl>.pnl-amount{font-size:17px;line-height:1.4;margin-top:6px}.acct-stock-pnl>.pnl-percent{font-size:20px;line-height:1.4;margin-top:3px}.acct-stock-row:last-child{border-bottom:0}.acct-symbol{font-size:14px;font-weight:800}.acct-stock-meta{font-size:11px;color:var(--muted);line-height:1.65;margin-top:3px}.acct-price{font-size:20px;line-height:1.3;font-weight:850;color:var(--ink);margin-top:3px;font-variant-numeric:tabular-nums}.acct-stock-pnl{text-align:right;flex-shrink:0}.acct-stock-pnl .pnl-percent{font-size:20px;margin-top:0}.acct-stock-pnl .pnl-amount{font-size:12px;margin-top:5px}.acct-stock-tools{display:flex;gap:5px;justify-content:flex-end;margin-top:7px}@media(max-width:1200px){.account-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.acct-stock-row{grid-template-columns:1fr 1fr;gap:8px}.acct-stock-pnl>.pnl-amount{font-size:15px}.acct-price{font-size:17px}.acct-stock-tools{flex-wrap:wrap}}@media(max-width:420px){.account-metrics{grid-template-columns:1fr 1fr}.acct-stock-meta{font-size:10px}.acct-stock-pnl .pnl-percent{font-size:17px}.acct-stock-row{grid-template-columns:minmax(0,1fr);gap:10px}.acct-stock-pnl{text-align:left}.acct-stock-tools{justify-content:flex-start}}.quote-info{display:none;border:1px solid #d7e5fa;background:#f1f6ff;color:#345386;border-radius:12px;padding:12px 15px;font-size:12px;line-height:1.7;margin-bottom:17px}.quote-info.ok{background:#edf9f4;color:#12684d;border-color:#cdebdc}.quote-info.warn{background:#fff9ee;color:#925b19;border-color:#f0dfb8}
 </style>
 </head>
 <body>
@@ -153,18 +153,43 @@ function journalPanel(as){
 }
 
 function accountStockPanel(a){
- const rows=a.holdings.filter(h=>h.qty>0).map(h=>{
+ const rows=a.holdings.filter(h=>Number(h.qty)>0).map(h=>{
   const valid=h.price!==null&&h.price!==undefined&&Number.isFinite(Number(h.price))&&Number(h.price)>0;
-  const gain=valid?h.qty*(Number(h.price)-h.avg):null;
-  const percentage=valid&&h.avg>0?(Number(h.price)/h.avg-1)*100:null;
+  const currentPrice=valid?Number(h.price):null;
+  const marketValue=valid?Number(h.qty)*currentPrice:null;
+  const gain=valid?Number(h.qty)*(currentPrice-Number(h.avg)):null;
+  const percentage=valid&&Number(h.avg)>0?(currentPrice/Number(h.avg)-1)*100:null;
   const color=gain===null||gain===0?'':gain>0?'positive':'negative';
-  const symbol=esc(h.symbol),name=esc(h.name||'');
   const amount=gain===null?'待報價':(gain>0?'+':'')+money(gain,a.currency);
   const rate=percentage===null?'—':percentage>0?'▲ +'+pct(percentage):percentage<0?'▼ '+pct(percentage):pct(percentage);
-  const dateInfo=valid&&h.priceDate?' · '+esc(h.priceDate):'';
-  return `<div class="acct-stock-row"><div style="min-width:0"><div class="acct-symbol">${symbol} <span style="font-size:11px;font-weight:500;color:var(--muted)">${name}</span></div><div class="acct-stock-meta">${fmt(h.qty,4)} 股 · 均價 ${money(h.avg,a.currency,2)}</div><div class="acct-price">市價 ${valid?money(h.price,a.currency,2):'尚未報價'}</div><div class="acct-stock-meta">${valid?esc(h.priceSource||'參考行情')+dateInfo:'點選上方同步台股／美股行情'}</div></div><div class="acct-stock-pnl ${color}"><span class="pnl-percent">${rate}</span><span class="pnl-amount">${amount}</span><div class="acct-stock-tools"><button class="btn small" type="button" data-position="${esc(a.id)}|${symbol}">編輯</button><button class="btn small" type="button" data-strategy="${esc(a.id)}|${symbol}">筆記</button></div></div></div>`;
+  const source=valid?(esc(h.priceSource||'參考行情')+(h.priceDate?' · '+esc(h.priceDate):' · 日期未記錄')):'尚未同步行情';
+  return `<article class="acct-stock-row">
+    <div class="acct-stock-main">
+      <div class="acct-symbol">${esc(h.symbol)} <span class="acct-stock-name">${esc(h.name||'')}</span></div>
+      <div class="acct-stock-meta">持有 ${fmt(h.qty,4)} 股 · 平均成本 ${money(h.avg,a.currency,2)}</div>
+      <div class="acct-price-box">
+        <div class="acct-stock-label">目前市價 <span style="font-weight:400">（最近同步）</span></div>
+        <div class="acct-price">${valid?money(currentPrice,a.currency,2):'尚未報價'}</div>
+        <div class="acct-stock-meta">${source}</div>
+      </div>
+    </div>
+    <div class="acct-stock-pnl ${color}">
+      <div class="acct-stock-label">未實現損益</div>
+      <span class="pnl-amount">${amount}</span>
+      <span class="pnl-percent">${rate}</span>
+      <div class="acct-stock-meta">目前市值：${marketValue===null?'—':money(marketValue,a.currency)}</div>
+      <div class="acct-stock-tools">
+        <button class="btn small" type="button" data-position="${esc(a.id)}|${esc(h.symbol)}">編輯庫存</button>
+        <button class="btn small" type="button" data-strategy="${esc(a.id)}|${esc(h.symbol)}">投資筆記</button>
+      </div>
+    </div>
+   </article>`;
  });
- return `<div class="card"><div class="card-header"><h2>個股損益明細</h2><span class="pill">${rows.length} 檔持股</span></div><div class="acct-stock-list">${rows.length?rows.join(''):'<div class="empty">目前此帳戶沒有持股；新增庫存後會在這裡顯示市價與損益。</div>'}</div><div class="hint" style="padding:0 20px 14px">市價唯讀，按「同步台股／美股行情」才更新。紅色獲利、綠色虧損。</div></div>`;
+ return `<div class="card">
+   <div class="card-header"><h2>個股損益明細</h2><span class="pill">${rows.length} 檔持股</span></div>
+   <div class="acct-stock-list">${rows.length?rows.join(''):'<div class="empty">目前此帳戶沒有持股。新增股票庫存後會顯示每檔市價與損益。</div>'}</div>
+   <div class="hint" style="padding:0 20px 14px;line-height:1.6">價格只會在按下「同步台股／美股行情」時更新，非盤中即時報價。紅色上漲、綠色下跌。</div>
+  </div>`;
 }
 function marketPanel(){return `<div class="card"><div class="card-header"><h2>大盤觀察價位</h2><span class="pill">官方盤後／自訂策略</span></div><div class="market-list">${state.markets.map(m=>{
  const q=publicIndexQuotes[m.id];const live=q&&Number.isFinite(q.price)&&q.price>0;
