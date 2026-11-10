@@ -27,6 +27,16 @@
 .watch-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:auto;padding-top:8px;border-top:1px solid var(--line)}
 @media(max-width:900px){.watch-grid{grid-template-columns:1fr}}
 @media(max-width:420px){.watch-fields{grid-template-columns:1fr}.metric-return{font-size:17px}}
+
+.watch-notebook-card{gap:11px;min-height:305px}
+.watch-notebook-body{display:flex;flex-direction:column;flex:1;min-height:0}
+.watch-notebook-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px;font-size:12px;font-weight:700;color:var(--ink)}
+.watch-save{font-size:11px;font-weight:500;color:var(--green)}
+.watch-notepad{display:block;width:100%;min-height:166px;flex:1;resize:vertical;border:1px solid #e0e6f0;border-radius:11px;padding:14px 15px;background:#fbfcff;color:var(--ink);font:400 13px/1.8 Inter,"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;outline:none;transition:border-color .15s,box-shadow .15s}
+.watch-notepad:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(70,104,233,.09)}
+.watch-notepad::placeholder{color:#a3afc1}
+.watch-notebook-card .watch-footer{padding-top:11px}
+@media(max-width:420px){.watch-notepad{min-height:175px}.watch-notebook-card{padding:16px}}
 .fx-status{font-size:11px;color:var(--muted);line-height:1.6;margin:-7px 0 15px}.fx-status:empty{display:none}.account-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.index-value{font-size:20px;line-height:1.2;font-weight:850;letter-spacing:-.4px;color:var(--ink);margin:8px 0 4px;font-variant-numeric:tabular-nums}.index-asof{color:var(--muted);font-size:10px;line-height:1.5}.acct-stock-list{padding:7px 18px 12px;max-height:455px;overflow:auto}.acct-stock-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(140px,.9fr);align-items:start;gap:14px;padding:14px 3px;border-bottom:1px solid var(--line)}.acct-stock-main{min-width:0}.acct-stock-name{font-weight:500;font-size:11px;color:var(--muted);margin-left:4px}.acct-price-box{margin-top:11px;padding:10px 12px;background:var(--surface2);border:1px solid var(--line);border-radius:10px}.acct-stock-label{font-size:11px;color:var(--muted);font-weight:600}.acct-stock-pnl>.pnl-amount{font-size:17px;line-height:1.4;margin-top:6px}.acct-stock-pnl>.pnl-percent{font-size:20px;line-height:1.4;margin-top:3px}.acct-stock-row:last-child{border-bottom:0}.acct-symbol{font-size:14px;font-weight:800}.acct-stock-meta{font-size:11px;color:var(--muted);line-height:1.65;margin-top:3px}.acct-price{font-size:20px;line-height:1.3;font-weight:850;color:var(--ink);margin-top:3px;font-variant-numeric:tabular-nums}.acct-stock-pnl{text-align:right;flex-shrink:0}.acct-stock-pnl .pnl-percent{font-size:20px;margin-top:0}.acct-stock-pnl .pnl-amount{font-size:12px;margin-top:5px}.acct-stock-tools{display:flex;gap:5px;justify-content:flex-end;margin-top:7px}@media(max-width:1200px){.account-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.acct-stock-row{grid-template-columns:1fr 1fr;gap:8px}.acct-stock-pnl>.pnl-amount{font-size:15px}.acct-price{font-size:17px}.acct-stock-tools{flex-wrap:wrap}}@media(max-width:420px){.account-metrics{grid-template-columns:1fr 1fr}.acct-stock-meta{font-size:10px}.acct-stock-pnl .pnl-percent{font-size:17px}.acct-stock-row{grid-template-columns:minmax(0,1fr);gap:10px}.acct-stock-pnl{text-align:left}.acct-stock-tools{justify-content:flex-start}}.quote-info{display:none;border:1px solid #d7e5fa;background:#f1f6ff;color:#345386;border-radius:12px;padding:12px 15px;font-size:12px;line-height:1.7;margin-bottom:17px}.quote-info.ok{background:#edf9f4;color:#12684d;border-color:#cdebdc}.quote-info.warn{background:#fff9ee;color:#925b19;border-color:#f0dfb8}
 </style>
 </head>
@@ -112,28 +122,35 @@ function figures(d,cur,all){
 }
 
 
+
+function watchNotebookText(w){
+ if(typeof w.scratchpad==='string')return w.scratchpad;
+ const parts=[];
+ if(w.reason)parts.push('關注原因\n'+w.reason);
+ if(w.trigger)parts.push('進場觀察條件\n'+w.trigger);
+ if(w.target!==null&&w.target!==undefined&&Number(w.target)>0)parts.push('理想價格\n'+(w.market==='USD'?'USD ':'TWD ')+String(w.target));
+ if(w.note)parts.push('其他備註\n'+w.note);
+ return parts.join('\n\n');
+}
 function watchlistPanel(){
  const items=state.watchlist||[];
- const rows=items.map(w=>{
+ const rows=items.map((w,i)=>{
   const currency=w.market==='USD'?'USD':'TWD';
   const hasPrice=w.price!==null&&w.price!==undefined&&Number.isFinite(Number(w.price))&&Number(w.price)>0;
-  const nice=value=>value?esc(value):'<span class="journal-empty">尚未設定</span>';
   const key=w.market+':'+w.symbol;
-  return `<article class="card watch-card">
-   <div class="watch-head"><div><div class="watch-symbol">${esc(w.symbol)} <span class="pill">${currency==='USD'?'美股':'台股'}</span></div><div class="watch-name">${esc(w.name||'自訂觀察標的')}</div></div><div style="text-align:right"><div class="watch-price">${hasPrice?money(w.price,currency,2):'未報價'}</div><div class="watch-caption">${hasPrice?esc((w.dateKind==='retrieved'?'擷取':'行情')+' '+(w.priceDate||'')+' · '+(w.source||'資料來源未記錄')):'按同步行情取得參考市價'}</div></div></div>
-   <div class="watch-fields">
-    <div class="watch-field"><div class="watch-label">關注原因</div><div class="watch-value">${nice(w.reason)}</div></div>
-    <div class="watch-field"><div class="watch-label">進場觀察條件</div><div class="watch-value">${nice(w.trigger)}</div></div>
-    <div class="watch-field"><div class="watch-label">理想價格</div><div class="watch-value">${w.target!==null&&w.target!==undefined&&Number(w.target)>0?money(w.target,currency,2):'<span class="journal-empty">未設定</span>'}</div></div>
-    <div class="watch-field"><div class="watch-label">備註</div><div class="watch-value">${nice(w.note)}</div></div>
+  const notebook=watchNotebookText(w);
+  return `<article class="card watch-card watch-notebook-card">
+   <div class="watch-head"><div><div class="watch-symbol">${esc(w.symbol)} <span class="pill">${currency==='USD'?'美股':'台股'}</span></div><div class="watch-name">${esc(w.name||'觀察中的標的')}</div></div><div style="text-align:right"><div class="watch-price">${hasPrice?money(w.price,currency,2):'尚未報價'}</div><div class="watch-caption">${hasPrice?esc((w.dateKind==='retrieved'?'擷取':'行情')+' '+(w.priceDate||'')+' · '+(w.source||'來源未記錄')):'按同步行情取得參考市價'}</div></div></div>
+   <div class="watch-notebook-body">
+     <div class="watch-notebook-top"><label for="watch-note-${i}">我的觀察筆記</label><span class="watch-save" aria-live="polite">自動儲存</span></div>
+     <textarea class="watch-notepad" id="watch-note-${i}" data-watch-note="${esc(key)}" maxlength="8000" spellcheck="false" placeholder="直接在這裡寫下你的想法…&#10;&#10;為什麼關注？&#10;什麼價位想進場？&#10;重要新聞或風險？&#10;下一次要確認的事情？">${esc(notebook)}</textarea>
    </div>
-   <div class="watch-footer"><button class="btn small" type="button" data-watch-edit="${esc(key)}">編輯</button><button class="btn small" type="button" data-watch-delete="${esc(key)}">移除</button></div>
+   <div class="watch-footer"><button class="btn small" type="button" data-watch-edit="${esc(key)}">修改股票資料</button><button class="btn small" type="button" data-watch-delete="${esc(key)}">移除</button></div>
   </article>`;
  });
- return `<div class="section-header"><div><h2>觀察與關注標的</h2><p class="watch-intro">尚未買進、想持續追蹤的台股與美股；獨立於持股，不會計入資產或自動下單。</p></div><button class="btn primary" type="button" data-watch-add>＋ 新增標的</button></div>
-  ${rows.length?`<div class="watch-grid">${rows.join('')}</div>`:'<div class="card empty">目前還沒有關注標的。點選「新增標的」，記錄代碼、關注原因與想等的進場條件。</div>'}`;
+ return `<div class="section-header"><div><h2>觀察記事本</h2><p class="watch-intro">股票想法直接寫在卡片上，不用開編輯視窗；文字會自動儲存在這個瀏覽器，並包含於匯出的備份。報價與資產分開。</p></div><button class="btn primary" type="button" data-watch-add>＋ 新增標的</button></div>
+  ${rows.length?`<div class="watch-grid">${rows.join('')}</div>`:'<div class="card empty">尚未有觀察標的。點選「新增標的」輸入代碼後，就能直接寫筆記。</div>'}`;
 }
-
 function journalPanel(as){
  const rows=as.flatMap(a=>a.holdings.filter(h=>h.qty>0).map(h=>{
   const text=(value)=>value?esc(value):'<span class="journal-empty">尚未記錄</span>';
@@ -345,42 +362,50 @@ function modalStrategy(id,symbol){
  };
 }
 
+
 function modalWatch(key=null){
  const items=state.watchlist||[];
  const existing=key?items.find(x=>x.market+':'+x.symbol===key):null;
  if(key&&!existing)return;
  const market=existing?.market||'TWD';
- modal(existing?'編輯關注標的':'新增觀察標的','不需要持有股票即可加入觀察清單。價格由「同步台股／美股行情」更新；目標價只是個人記錄，不會自動發出通知。',
+ modal(existing?'修改觀察標的資料':'新增觀察標的','只要設定市場與股票代碼；新增後直接在卡片記事本輸入想法，自動儲存。不影響實際持股與現金。',
  `<form id="modal-form"><div class="form-grid">
   <div class="field"><label>市場</label><select name="market"><option value="TWD" ${market==='TWD'?'selected':''}>台股（TWD）</option><option value="USD" ${market==='USD'?'selected':''}>美股（USD）</option></select></div>
   <div class="field"><label>股票代碼</label><input name="symbol" maxlength="13" value="${esc(existing?.symbol||'')}" placeholder="例如 2330、AAOI" required/></div>
-  <div class="field full"><label>名稱（選填）</label><input name="name" maxlength="70" value="${esc(existing?.name||'')}" placeholder="例如 台積電"/></div>
-  <div class="field full"><label>關注原因</label><textarea name="reason" maxlength="900" placeholder="為什麼想關注？例如產業趨勢、財報、技術型態">${esc(existing?.reason||'')}</textarea></div>
-  <div class="field full"><label>進場觀察條件</label><textarea name="trigger" maxlength="900" placeholder="例如跌至某價位、突破壓力、財報改善後再評估">${esc(existing?.trigger||'')}</textarea></div>
-  <div class="field"><label>理想價格（選填）</label><input type="number" name="target" min="0.0001" step="any" value="${existing?.target??''}" placeholder="不會自動觸發通知"/></div>
-  <div class="field full"><label>其他備註</label><textarea name="note" maxlength="900" placeholder="重要事件、等待確認的風險等">${esc(existing?.note||'')}</textarea></div>
+  <div class="field full"><label>股票名稱（選填）</label><input name="name" maxlength="70" value="${esc(existing?.name||'')}" placeholder="例如 台積電"/></div>
  </div></form>`);
  $('#modal-form').onsubmit=e=>{
   e.preventDefault();
-  const form=new FormData(e.currentTarget),newMarket=String(form.get('market')),symbol=String(form.get('symbol')||'').trim().toUpperCase();
-  const regex=newMarket==='TWD'?/^[0-9A-Z]{3,8}$/:/^[A-Z][A-Z0-9.-]{0,12}$/;
-  if(!['TWD','USD'].includes(newMarket)||!regex.test(symbol)){alert('請輸入有效股票代碼：台股例如 2330、0050；美股例如 AAOI、AAPL。');return}
-  const nextKey=newMarket+':'+symbol;
-  if(items.some(w=>w!==existing&&w.market+':'+w.symbol===nextKey)){alert('觀察清單已有相同市場的股票代碼。');return}
-  const targetRaw=String(form.get('target')||'').trim();
-  const target=targetRaw===''?null:Number(targetRaw);
-  if(target!==null&&(!Number.isFinite(target)||target<=0)){alert('理想價格需為正數，或留空。');return}
-  const sameTicker=existing&&existing.market===newMarket&&existing.symbol===symbol;
-  const next={market:newMarket,symbol,name:String(form.get('name')||'').trim(),reason:String(form.get('reason')||'').trim(),trigger:String(form.get('trigger')||'').trim(),target,note:String(form.get('note')||'').trim(),
-    price:sameTicker?(existing.price??null):null,priceDate:sameTicker?(existing.priceDate||null):null,source:sameTicker?(existing.source||null):null,dateKind:sameTicker?(existing.dateKind||null):null};
-  if(existing)Object.assign(existing,next);else items.push(next);
+  const form=new FormData(e.currentTarget),market=String(form.get('market')),symbol=String(form.get('symbol')||'').trim().toUpperCase();
+  const regex=market==='TWD'?/^[0-9A-Z]{3,8}$/:/^[A-Z][A-Z0-9.-]{0,12}$/;
+  if(!['TWD','USD'].includes(market)||!regex.test(symbol)){alert('請輸入有效代碼：台股例如 2330、0050；美股例如 AAOI、AAPL。');return}
+  if(items.some(w=>w!==existing&&w.market===market&&w.symbol===symbol)){alert('這個代碼已在觀察清單中。');return}
+  const sameTicker=!!existing&&existing.market===market&&existing.symbol===symbol;
+  const name=String(form.get('name')||'').trim();
+  if(existing){
+   existing.market=market;existing.symbol=symbol;existing.name=name;
+   if(!sameTicker){existing.price=null;existing.priceDate=null;existing.source=null;existing.dateKind=null;}
+  }else{
+   items.push({market,symbol,name,reason:'',trigger:'',target:null,note:'',scratchpad:'',price:null,priceDate:null,source:null,dateKind:null});
+  }
   persist();closeModal();render();
  };
 }
-
 function validateImport(s){if(!s||!Array.isArray(s.accounts)||s.accounts.length!==5||!Array.isArray(s.transactions))throw Error('資料不是此 Dashboard 的備份格式。');for(let a of s.accounts){if(!['A','B','C','D','E'].includes(a.id)||!Array.isArray(a.holdings)||!Number.isFinite(Number(a.cash)))throw Error('帳戶資料不完整。');for(let h of a.holdings){if(!h.symbol||num(h.qty)<0||num(h.avg)<0)throw Error('持股資料格式錯誤。')}}if(!Array.isArray(s.markets))s.markets=copy(starting.markets);if(!Array.isArray(s.cashAdjustments))s.cashAdjustments=[];if(!Array.isArray(s.settlements))s.settlements=[];if(!Array.isArray(s.watchlist))s.watchlist=[];for(let a of s.accounts){if(!Number.isFinite(num(a.pending))||num(a.pending)<0)throw Error('待交割金額格式錯誤。');if(a.label!==undefined&&(typeof a.label!=='string'||a.label.length>60))throw Error('帳戶名稱格式不正確。');if(a.broker!==undefined&&(typeof a.broker!=='string'||a.broker.length>60))throw Error('券商名稱格式不正確。')}}
 document.addEventListener('click',e=>{const tab=e.target.closest('[data-tab]');if(tab){selection=tab.dataset.tab;render();window.scrollTo(0,0);return}const mo=e.target.closest('[data-modal]');if(mo){if(mo.dataset.modal==='names')modalNames();if(mo.dataset.modal==='trade')modalTrade();if(mo.dataset.modal==='position')modalPosition();if(mo.dataset.modal==='cash')modalCash();if(mo.dataset.modal==='settlement')modalSettlement();return}const addWatch=e.target.closest('[data-watch-add]');if(addWatch){modalWatch();return}const editWatch=e.target.closest('[data-watch-edit]');if(editWatch){modalWatch(editWatch.dataset.watchEdit);return}const delWatch=e.target.closest('[data-watch-delete]');if(delWatch){const key=delWatch.dataset.watchDelete;const item=(state.watchlist||[]).find(w=>w.market+':'+w.symbol===key);if(item&&confirm('確定移除 '+item.symbol+'？只會刪除觀察清單的這筆資料，不會影響持股。')){state.watchlist=state.watchlist.filter(w=>w!==item);persist();render()}return}const mr=e.target.closest('[data-market]');if(mr){modalMarket(mr.dataset.market);return}const pos=e.target.closest('[data-position]');if(pos){const [id,symbol]=pos.dataset.position.split('|');modalPosition(id,symbol);return}const st=e.target.closest('[data-strategy]');if(st){const [id,symbol]=st.dataset.strategy.split('|');modalStrategy(id,symbol);return}if(e.target===$('#overlay'))closeModal();});
 
+
+document.addEventListener('input',e=>{
+ const editor=e.target.closest?.('[data-watch-note]');
+ if(!editor)return;
+ const key=editor.dataset.watchNote;
+ const item=(state.watchlist||[]).find(w=>w.market+':'+w.symbol===key);
+ if(!item)return;
+ item.scratchpad=editor.value;
+ persist();
+ const status=editor.closest('.watch-card')?.querySelector('.watch-save');
+ if(status)status.textContent='已自動儲存';
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 $('#export-btn').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`portfolio_backup_${new Date().toLocaleDateString('sv-SE')}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),5000)};
 $('#import-btn').onclick=()=>$('#file-in').click();$('#file-in').onchange=async e=>{let file=e.target.files?.[0];if(!file)return;try{let s=JSON.parse(await file.text());validateImport(s);if(confirm('匯入將取代目前此瀏覽器的資料。建議先匯出備份。確定繼續嗎？')){for(const account of s.accounts)delete account.limit;state=s;persist();selection='all';render();void refreshDailyFx();}}catch(err){alert('無法匯入：'+err.message)}e.target.value=''};
