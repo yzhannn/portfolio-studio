@@ -333,7 +333,7 @@ function applyProfitShareLink(){
   if(parts.length!==4)throw Error('設定連結格式不正確');
   const [label,broker,principalRaw,pctRaw]=parts;
   const norm=v=>String(v||'').trim().toLowerCase().replace(/[\s_-]+/g,'');
-  const account=state.accounts.find(a=>norm(accountTitle(a))===norm(label)&&norm(a.broker)===norm(broker));
+  const account=state.accounts.find(a=>norm(accountTitle(a))===norm(label)&&(norm(a.broker)===norm(broker)||norm(a.broker).includes(norm(broker))));
   const principal=Number(principalRaw),minePercent=Number(pctRaw);
   if(!account){alert('找不到指定名稱與券商的帳戶。請進入該帳戶點選「設定本金與分潤」手動設定。');return}
   if(!Number.isFinite(principal)||principal<=0||principal>1e12||!Number.isFinite(minePercent)||minePercent<0||minePercent>100)throw Error('本金或比例無效');
